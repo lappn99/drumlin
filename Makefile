@@ -4,20 +4,33 @@
 CC=gcc
 CCFLAGS=-c -Wall -Werror -fpic -Bsymbolic -ggdb
 LDFLAGS=-shared
-MODULES=drumlin map tile tileservice
+MODULES=drumlin map tile tileservice app renderer
 
 SRCDIR=./impl
 OBJDIR=./obj
 OBJS= ${addprefix ${OBJDIR}/, ${addsuffix .o, ${MODULES}}}
-INCLUDE_DIR=./interface
-INCLUDE=-I${INCLUDE_DIR}
+INCLUDE_DIR=./interface ./extern/sokol ./extern/stb_image ./extern/stb_image_write
+
+INCLUDE=${addprefix -I, ${INCLUDE_DIR}}
 CURRENT_DIR = $(shell pwd)
 
-TILESERVICE_IMPL=./impl/tileservice/sokol/tileservice_sokol.c
-
+TILESERVICE_IMPL=./impl/tileservice/sokol/tileservice_curl.c
+APP_IMPL=./impl/app/sdl/app_sdl.c
+RENDERER_IMPL=./impl/renderer/sdl/renderer_sdl.c
+LIBS=
 build: libdrumlin.so
 
+${OBJDIR}/app.o: ${APP_IMPL}
+	@mkdir -p ${dir $@}
+	@echo $@
+	${CC} ${CCFLAGS} ${LIBS} ${INCLUDE} $< -D_GNU_SOURCE -o $@
+
 ${OBJDIR}/tileservice.o: ${TILESERVICE_IMPL}
+	@mkdir -p ${dir $@}
+	@echo $@
+	${CC} ${CCFLAGS} ${LIBS} ${INCLUDE} $< -D_GNU_SOURCE -o $@
+
+${OBJDIR}/renderer.o: ${RENDERER_IMPL}
 	@mkdir -p ${dir $@}
 	@echo $@
 	${CC} ${CCFLAGS} ${LIBS} ${INCLUDE} $< -D_GNU_SOURCE -o $@
@@ -47,7 +60,7 @@ uninstall:
 
 
 example: install example.c 
-	${CC} -fsanitize=address -lasan -ldrumlin ${INCLUDE} -o  $@ example.c -ggdb
+	${CC} -fsanitize=address -lasan -ldrumlin -lSDL2 -lm -lcurl ${INCLUDE} -o $@ example.c -ggdb
 
 
 
