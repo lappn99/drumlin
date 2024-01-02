@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 
     DMapHandle map = d_make_map(&(DMapInitDesc){
         .position = latlng(43.9153,-80.1086),
-        .zoom = 8
+        .zoom = 12
     });
 
     int x,y;

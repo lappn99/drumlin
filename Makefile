@@ -2,14 +2,14 @@
 .SUFFIXES: .c .o
 
 CC=gcc
-CCFLAGS=-c -Wall -Werror -fpic -Bsymbolic -ggdb
+CCFLAGS=-c -Wall -Werror -fPIC -ggdb
 LDFLAGS=-shared
 MODULES=drumlin map tile tileservice app renderer
 
 SRCDIR=./impl
 OBJDIR=./obj
 OBJS= ${addprefix ${OBJDIR}/, ${addsuffix .o, ${MODULES}}}
-INCLUDE_DIR=./interface ./extern/sokol ./extern/stb_image ./extern/stb_image_write
+INCLUDE_DIR=./interface ./extern/stb_image
 
 INCLUDE=${addprefix -I, ${INCLUDE_DIR}}
 CURRENT_DIR = $(shell pwd)
@@ -17,7 +17,8 @@ CURRENT_DIR = $(shell pwd)
 TILESERVICE_IMPL=./impl/tileservice/sokol/tileservice_curl.c
 APP_IMPL=./impl/app/sdl/app_sdl.c
 RENDERER_IMPL=./impl/renderer/sdl/renderer_sdl.c
-LIBS=
+EXAMPLE_LIBS=-lasan -ldrumlin -lSDL2 -lm -lcurl -lpthread
+
 build: libdrumlin.so
 
 ${OBJDIR}/app.o: ${APP_IMPL}
@@ -60,7 +61,7 @@ uninstall:
 
 
 example: install example.c 
-	${CC} -fsanitize=address -lasan -ldrumlin -lSDL2 -lm -lcurl ${INCLUDE} -o $@ example.c -ggdb
+	${CC} -fsanitize=address ${EXAMPLE_LIBS} ${INCLUDE} -o $@ example.c -ggdb
 
 
 
