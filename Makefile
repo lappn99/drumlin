@@ -4,7 +4,7 @@
 CC=gcc
 CCFLAGS=-c -Wall -Werror -fPIC -ggdb
 LDFLAGS=-shared
-MODULES=drumlin map tile tileservice app renderer
+MODULES=drumlin map tile tileservice app renderer container/arraylist
 
 SRCDIR=./impl
 OBJDIR=./obj
@@ -14,7 +14,7 @@ INCLUDE_DIR=./interface ./extern/stb_image
 INCLUDE=${addprefix -I, ${INCLUDE_DIR}}
 CURRENT_DIR = $(shell pwd)
 
-TILESERVICE_IMPL=./impl/tileservice/sokol/tileservice_curl.c
+TILESERVICE_IMPL=./impl/tileservice/curl/tileservice_curl.c
 APP_IMPL=./impl/app/sdl/app_sdl.c
 RENDERER_IMPL=./impl/renderer/sdl/renderer_sdl.c
 EXAMPLE_LIBS=-lasan -ldrumlin -lSDL2 -lm -lcurl -lpthread
