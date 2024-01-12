@@ -14,6 +14,8 @@ struct DMap
 {
     DLatLng view_position;
     int zoom;
+    
+    
 };
 
 DMapHandle 
@@ -66,6 +68,7 @@ d_map_render(DMapHandle handle)
     D_LOG_INFO("Bounding box: %f, %f,%f,%f", bbox.min.lng,bbox.min.lat,bbox.max.lng,bbox.max.lat);
 
     
+    
     for(i = xmin; i <= xmax; i++)
     {
         for(j = ymin; j <= ymax; j++)
@@ -81,19 +84,6 @@ d_map_render(DMapHandle handle)
             free(tile.raster);
         }
     }   
-    /*DTile tile;
-    int result = d_tileservice_gettile(handle->zoom,x,y,&tile);
-    if(!result)
-    {
-        D_LOG_ERROR("Could not render %d, %d, %d",handle->zoom,x,y);
-        return;
-    }
-    d_renderer_drawtile(&tile,0,0);
-    free(tile.raster);*/
-    
-    
-
-
 }
 
 double 
@@ -102,5 +92,9 @@ d_map_resolution(DMapHandle map)
     return MIN_RESOLUTION * cos(map->view_position.lat) / (pow(2.0,map->zoom));
 }
 
+void
+d_map_addlayer(DLayer* layer)
+{
 
+}
 

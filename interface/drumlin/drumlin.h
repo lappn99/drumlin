@@ -1,8 +1,10 @@
 #ifndef _DRUMLIN_H
 #define _DRUMLIN_H
 
-#include <drumlin/logging.h>
-#include <drumlin/app.h>
+#include "logging.h"
+#include "app.h"
+#include "drumlin/layer.h"
+#include "container/arraylist.h"
 
 typedef struct
 {
@@ -47,6 +49,7 @@ void d_latlng_to_bbox(DLatLng, int, DBBox*);
 
 
 #include <drumlin/map.h>
+#include <drumlin/tileservice.h>
 
 
 #endif //_DRUMLIN_H

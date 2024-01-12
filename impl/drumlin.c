@@ -16,7 +16,8 @@
 
 
 
-int drumlin_init(void)
+int 
+drumlin_init(void)
 {
     d_init_tileservice();
     return 0;
@@ -25,7 +26,8 @@ int drumlin_init(void)
 
 
 
-void d_debug_log(int line, const char* file,enum LogLevel info,const char* fmt, ...)
+void 
+d_debug_log(int line, const char* file,enum LogLevel info,const char* fmt, ...)
 {
     //Array of prefixes
     //Uses ANSI escape sequences for coloring.

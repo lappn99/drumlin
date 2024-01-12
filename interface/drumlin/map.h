@@ -1,7 +1,7 @@
 #ifndef _DRUMLIN_MAP_H
 #define _DRUMLIN_MAP_H
-#include <drumlin/drumlin.h>
-
+#include "drumlin.h"
+#include "layer.h"
 struct DMap;
 
 typedef struct DMap* DMapHandle;
@@ -21,6 +21,7 @@ void d_destroy_map(DMapHandle);
 void d_map_setview(DMapHandle, DLatLng, int);
 void d_map_render(DMapHandle);
 double d_map_resolution(DMapHandle);
+void d_map_addlayer(DLayer*);
 
 
 
