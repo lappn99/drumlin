@@ -129,7 +129,7 @@ d_tileservice_gettile(int z, int x, int y, DTile* tile)
     }
 
     tile->raster = stbi_load_from_memory(tile_png.buffer,tile_png.size,&tile->width, &tile->height, &tile->bands,0);
-    stbi_write_png("tile.png",tile->width,tile->height,tile->bands,tile->raster,0);
+    
     if(tile->raster == NULL)
     {
         D_LOG_ERROR("Could not decode tile image", NULL);

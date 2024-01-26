@@ -27,12 +27,12 @@ int main(int argc, char** argv)
     D_LOG_INFO("Map resolution: %lf",d_map_resolution(map));
     d_map_addlayer(map,(DLayer*)tileservice);
     
-
+    d_map_render(map);
     while(!drumlin_shouldquit())
     {
         
         d_app_update();   
-        d_map_render(map);
+        
     }
 
 
