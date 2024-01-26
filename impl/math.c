@@ -14,6 +14,9 @@
 #define DEG_2_RAD(DEGREES) (DEGREES * M_PI / 180.0)
 #define RAD_2_DEG(RADIANS) (RADIANS * (180 / M_PI))
 
+#define EARTH_CIR_METERS 40075016.686
+const double DEGREES_PER_METER = 360 / EARTH_CIR_METERS;
+
 void 
 d_latlng_to_tilenum(DLatLng latlng, int zoom, int* x, int* y)
 {
@@ -35,6 +38,33 @@ d_tilenum_to_latlng(int x, int y, int zoom, DLatLng* latlng)
     latlng->lng = lon_deg;
 }
 
+void
+d_latlng_to_bbox(DLatLng latlng, int zoom, DBBox* bbox)
+{
+    int width, height;
+    height = width = 0;
+    d_app_getwindowsize(&width, &height);
+
+    double metersPerPixelEW = EARTH_CIR_METERS / pow(2,zoom + 8);
+    double metersPerPixelNS = EARTH_CIR_METERS / pow(2, zoom + 8) * cos(DEG_2_RAD(latlng.lat));
+
+    double shiftMetersEW = width/2  * metersPerPixelEW;
+    double shiftMetersNS = height/2 * metersPerPixelNS;
+
+    double shiftDegreesEW = shiftMetersEW * DEGREES_PER_METER;
+    double shiftDegreesNS = shiftMetersNS * DEGREES_PER_METER;
+
+    DLatLng min;
+    DLatLng max;
+    min.lat = latlng.lat + shiftDegreesNS;
+    min.lng = latlng.lng - shiftDegreesEW;
+    max.lat = latlng.lat - shiftDegreesNS;
+    max.lng = latlng.lng + shiftDegreesEW;
+    *bbox = bbox(min,max);
+
+}
+
+/*
 void 
 d_latlng_to_bbox(DLatLng latlng, int zoom, DBBox* bbox)
 {
@@ -42,7 +72,6 @@ d_latlng_to_bbox(DLatLng latlng, int zoom, DBBox* bbox)
     int width, height;
     height = width = 0;
     d_app_getwindowsize(&width, &height);
-
 
     int xtile, ytile;
     d_latlng_to_tilenum(latlng,zoom,&xtile, &ytile);
@@ -56,3 +85,4 @@ d_latlng_to_bbox(DLatLng latlng, int zoom, DBBox* bbox)
     d_tilenum_to_latlng(xe,ye,zoom,&latlng_e);
     *bbox = bbox(latlng_s, latlng_e);
 }
+*/

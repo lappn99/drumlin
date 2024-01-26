@@ -8,9 +8,6 @@
 #include <drumlin/logging.h>
 
 static SDL_Window* window;
-//static SDL_Surface* surface;
-
-
 
 int 
 drumlin_start(DAppInitDesc* desc)

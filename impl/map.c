@@ -74,7 +74,7 @@ d_map_render(DMapHandle handle)
     int xmax, ymax;
     d_latlng_to_tilenum(bbox.min,handle->zoom, &xmin, &ymin);
     d_latlng_to_tilenum(bbox.max,handle->zoom, &xmax, &ymax);
-    D_LOG_INFO("Bounding box: %f, %f,%f,%f", bbox.min.lng,bbox.min.lat,bbox.max.lng,bbox.max.lat);
+    D_LOG_INFO("Bounding box: %f, %f,%f,%f", bbox.min.lat,bbox.min.lng,bbox.max.lat,bbox.max.lng);
 
     
     
