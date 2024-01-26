@@ -17,7 +17,7 @@ CURRENT_DIR = $(shell pwd)
 TILESERVICE_IMPL=./impl/tileservice/curl/tileservice_curl.c
 APP_IMPL=./impl/app/sdl/app_sdl.c
 RENDERER_IMPL=./impl/renderer/sdl/renderer_sdl.c
-EXAMPLE_LIBS=-ldrumlin -lSDL2 -lm -lcurl -lpthread
+EXAMPLE_LIBS=-ldrumlin -lSDL2 -lm -lcurl
 
 build: libdrumlin.so
 
