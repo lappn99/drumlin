@@ -42,6 +42,15 @@ d_renderer_drawraster(DLayerRasterGraphic* raster, int x , int y)
     
 }
 
+void
+d_renderer_clear(void)
+{
+    if(SDL_RenderClear(renderer) != 0)
+    {
+        D_LOG_WARNING("Could not clear screen: %s", SDL_GetError());
+    }
+}
+
 void 
 d_deinit_renderer(void)
 {

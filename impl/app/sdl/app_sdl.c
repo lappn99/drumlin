@@ -72,6 +72,7 @@ d_app_getwindowhandle(void)
 void 
 d_app_update(void)
 {
+    
     SDL_UpdateWindowSurface(window);
 
 }

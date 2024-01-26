@@ -145,10 +145,10 @@ d_tileservice_gettile(int z, int x, int y, DTile* tile)
 void 
 d_tileservce_render(DLayer* layer, DBBox view_box, int zoom)
 {
-    DTileServiceLayer* tileservice = (DTileServiceLayer*)layer; 
+    //DTileServiceLayer* tileservice = (DTileServiceLayer*)layer; 
     DLayerGraphic graphic;
     memset(&graphic,0,sizeof(DLayerGraphic));
-    D_LOG_INFO("Render tileservice %s", tileservice->uri_fmt);
+    
     
     int xmin, ymin;
     int xmax, ymax;
