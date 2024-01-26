@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
-#include <drumlin/drumlin.h>
+
 #include <drumlin/app.h>
 #include <drumlin/renderer.h>
+#include <drumlin/logging.h>
 
 static SDL_Window* window;
 //static SDL_Surface* surface;

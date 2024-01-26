@@ -5,6 +5,7 @@
     Little logging utility made for for fun
     Made by Nathan Lapp. March 2023
 */
+#include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
 

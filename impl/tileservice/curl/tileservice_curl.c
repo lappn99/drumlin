@@ -10,10 +10,10 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
-#include <drumlin/drumlin.h>
+#include <drumlin/math.h>
 #include <drumlin/logging.h>
 #include <drumlin/tileservice.h>
-
+#include <drumlin/renderer.h>
 
 const char OSM_TILESERVICE_URL[] = "https://tile.openstreetmap.org/%d/%d/%d.png";
 const char CACHE_DIR[] = "/tmp/drumlin/";
@@ -24,6 +24,7 @@ typedef struct
 {
     unsigned char* buffer;
     size_t size;
+    
 } TilePNGData;
 
 static CURL* curl;
@@ -40,7 +41,11 @@ d_make_tileservice(DTileServiceLayerDesc* desc)
     DTileServiceLayer* tileservice = malloc(sizeof(DTileServiceLayer));
     memset(tileservice,0,sizeof(DTileServiceLayer));
     tileservice->base.metadata.attribution = desc->attribution;
+    strncpy(tileservice->base.metadata.name,desc->name,DLAYER_NAME_MAXLEN);
     strcpy(tileservice->uri_fmt,desc->uri_fmt);
+    tileservice->base.render_graphic_func = d_tileservce_render;
+    tileservice->base.type = DRUMLIN_LAYER_RASTER;
+    
     return tileservice;
 }
 
@@ -135,6 +140,40 @@ d_tileservice_gettile(int z, int x, int y, DTile* tile)
     
 
 
+}
+
+void 
+d_tileservce_render(DLayer* layer, DBBox view_box, int zoom)
+{
+    DTileServiceLayer* tileservice = (DTileServiceLayer*)layer; 
+    DLayerGraphic graphic;
+    memset(&graphic,0,sizeof(DLayerGraphic));
+    D_LOG_INFO("Render tileservice %s", tileservice->uri_fmt);
+    
+    int xmin, ymin;
+    int xmax, ymax;
+    int i,j;
+
+    d_latlng_to_tilenum(view_box.min,zoom, &xmin, &ymin);
+    d_latlng_to_tilenum(view_box.max,zoom, &xmax, &ymax);
+    
+    for(i = xmin; i <= xmax; i++)
+    {
+        for(j = ymin; j <= ymax; j++)
+        {
+            DTile tile;
+            int result = d_tileservice_gettile(zoom,i,j,&tile);
+            if(!result)
+            {
+                D_LOG_ERROR("Could not render %d, %d, %d",zoom,i,j);
+                return;
+            }
+            d_renderer_drawraster((DLayerRasterGraphic*)&tile,(i - xmin) * 256,(j - ymin) * 256);
+            free(tile.raster);
+        }
+    }   
+
+    
 }
 
 static int
@@ -281,7 +320,4 @@ recieve_data(void* data, size_t size, size_t nmemb, void* userdata)
     return size * nmemb;
 
 }
-
-
-
 

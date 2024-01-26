@@ -1,10 +1,15 @@
 #include <stdlib.h> //malloc, free
 #include <math.h>
 
+
 #include <drumlin/tileservice.h>
 #include <drumlin/map.h>
 #include <drumlin/tile.h>
 #include <drumlin/renderer.h>
+#include <drumlin/layer.h>
+#include <drumlin/container/arraylist.h>
+#include <drumlin/math.h>
+#include <drumlin/logging.h>
 
 const int MIN_ZOOM = 0;
 const int MAX_ZOOM = 18;
@@ -14,6 +19,7 @@ struct DMap
 {
     DLatLng view_position;
     int zoom;
+    DArrayListHandle layers;
     
     
 };
@@ -24,6 +30,8 @@ d_make_map(DMapInitDesc* init)
     DMapHandle handle = malloc(sizeof(struct DMap));
     handle->view_position = init->position;
     handle->zoom = init->zoom;
+    handle->layers = d_make_arraylist(sizeof(DLayer*),5);
+    
     
     return handle;
 }
@@ -33,7 +41,9 @@ d_make_map(DMapInitDesc* init)
 void 
 d_destroy_map(DMapHandle handle)
 {
+    d_destroy_arraylist(handle->layers);
     free(handle);
+    
 }
 
 void
@@ -55,11 +65,10 @@ void
 d_map_render(DMapHandle handle)
 {
     int x,y;
-    int i,j;
     DBBox bbox;
     y = x = 0;
     d_latlng_to_tilenum(handle->view_position,handle->zoom,&x, &y);
-    D_LOG_INFO("Map tile: %d, %d, %d",handle->zoom,x,y);
+    
     d_latlng_to_bbox(handle->view_position,handle->zoom,&bbox);
     int xmin, ymin;
     int xmax, ymax;
@@ -69,21 +78,13 @@ d_map_render(DMapHandle handle)
 
     
     
-    for(i = xmin; i <= xmax; i++)
+
+    int i = 0;
+    for(i = 0; i < d_arraylist_getsize(handle->layers);i++)
     {
-        for(j = ymin; j <= ymax; j++)
-        {
-            DTile tile;
-            int result = d_tileservice_gettile(handle->zoom,i,j,&tile);
-            if(!result)
-            {
-                D_LOG_ERROR("Could not render %d, %d, %d",handle->zoom,x,y);
-                return;
-            }
-            d_renderer_drawtile(&tile,(i - xmin) * 256,(j - ymin) * 256);
-            free(tile.raster);
-        }
-    }   
+        DLayer* layer = *((DLayer**)d_arraylist_get(handle->layers,i));
+        layer->render_graphic_func(layer, bbox, handle->zoom);
+    }
 }
 
 double 
@@ -93,8 +94,9 @@ d_map_resolution(DMapHandle map)
 }
 
 void
-d_map_addlayer(DLayer* layer)
+d_map_addlayer(DMapHandle map, DLayer* layer)
 {
-
+    DLayer* result = *((DLayer**)d_arraylist_append(map->layers,&layer));
+    D_LOG_INFO("Added layer: %s", result->metadata.name);
 }
 

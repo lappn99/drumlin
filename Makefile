@@ -4,7 +4,7 @@
 CC=gcc
 CCFLAGS=-c -Wall -Werror -fPIC -ggdb
 LDFLAGS=-shared
-MODULES=drumlin map tile tileservice app renderer container/arraylist
+MODULES=drumlin map tile tileservice app renderer math container/arraylist
 
 SRCDIR=./impl
 OBJDIR=./obj
@@ -17,7 +17,7 @@ CURRENT_DIR = $(shell pwd)
 TILESERVICE_IMPL=./impl/tileservice/curl/tileservice_curl.c
 APP_IMPL=./impl/app/sdl/app_sdl.c
 RENDERER_IMPL=./impl/renderer/sdl/renderer_sdl.c
-EXAMPLE_LIBS=-lasan -ldrumlin -lSDL2 -lm -lcurl -lpthread
+EXAMPLE_LIBS=-ldrumlin -lSDL2 -lm -lcurl -lpthread
 
 build: libdrumlin.so
 
@@ -61,7 +61,7 @@ uninstall:
 
 
 example: install example.c 
-	${CC} -fsanitize=address ${EXAMPLE_LIBS} ${INCLUDE} -o $@ example.c -ggdb
+	${CC} ${EXAMPLE_LIBS} ${INCLUDE} -o $@ example.c -ggdb
 
 
 

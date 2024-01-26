@@ -10,7 +10,7 @@ struct DArrayList
     size_t size;
     size_t capacity;
     void* array;
-} ;
+};
 
 
 
@@ -27,7 +27,7 @@ d_make_arraylist(int element_size,int initial_capacity)
     return arraylist;
 }
 
-void 
+void*
 d_arraylist_append(DArrayListHandle handle,void* data)
 {
     if(handle->size + 1 > handle->capacity)
@@ -35,11 +35,13 @@ d_arraylist_append(DArrayListHandle handle,void* data)
         if(d_arraylist_setcapacity(handle,handle->capacity * 1.5))
         {
             D_LOG_ERROR("Could not append element", NULL);
-            return;
+            return NULL;
         }
     }
-    memcpy(handle->array + (handle->size * handle->element_size),data,handle->element_size);
+    void* dest = handle->array + (handle->size * handle->element_size);
+    memcpy(dest,data,handle->element_size);
     handle->size++;
+    return dest;
 
 }
 
@@ -56,10 +58,17 @@ d_arraylist_setcapacity(DArrayListHandle handle,int capacity)
     return capacity;
 }
 
-void 
-d_arraylist_get(DArrayListHandle handle,size_t index,void* out)
+void*
+d_arraylist_get(DArrayListHandle handle,size_t index)
 {
-    memcpy(out,handle->array + (handle->element_size * index),handle->element_size);
+    //void* data = handle->array + (handle->element_size * index);
+    return handle->array + (handle->element_size * index);
+}
+
+size_t 
+d_arraylist_getsize(DArrayListHandle handle)
+{
+    return handle->size;
 }
 
 void 

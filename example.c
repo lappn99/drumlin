@@ -2,6 +2,7 @@
 
 int main(int argc, char** argv)
 {
+    //D_LOG_INFO("Start",NULL);
     drumlin_init();
     drumlin_start(&(DAppInitDesc){
         .width = 900,
@@ -10,11 +11,13 @@ int main(int argc, char** argv)
     });
 
     DTileServiceLayer* tileservice = d_make_tileservice(&(DTileServiceLayerDesc){
-        .uri_fmt = "https://tile.openstreetmap.org/%d/%d/%d.png"
+        .name = "OSM Tile Service",
+        .uri_fmt = "https://tile.openstreetmap.org/%d/%d/%d.png",
+        .attribution = "OpenStreetMap"
     });
 
     DMapHandle map = d_make_map(&(DMapInitDesc){
-        .position = latlng(43.9153,-80.1086),
+        .position = latlng(43.915278, -80.108611),
         .zoom = 12
     });
 
@@ -22,7 +25,7 @@ int main(int argc, char** argv)
     
     
     D_LOG_INFO("Map resolution: %lf",d_map_resolution(map));
-    d_map_addlayer((DLayer*)tileservice);
+    d_map_addlayer(map,(DLayer*)tileservice);
     d_map_render(map);
 
     while(!drumlin_shouldquit())
