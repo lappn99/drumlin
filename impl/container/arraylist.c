@@ -1,10 +1,10 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <drumlin/container/arraylist.h>
+#include <drumlin/container/list.h>
 #include <drumlin/logging.h>
 
-struct DArrayList
+struct DList
 {
     int element_size;
     size_t size;
@@ -12,27 +12,25 @@ struct DArrayList
     void* array;
 };
 
-
-
-DArrayListHandle 
-d_make_arraylist(int element_size,int initial_capacity)
+DListHandle 
+d_make_list(int element_size,int initial_capacity)
 {
-    DArrayListHandle arraylist;
-    arraylist = malloc(sizeof(struct DArrayList));
-    memset(arraylist,0,sizeof(struct DArrayList));
+    DListHandle arraylist;
+    arraylist = malloc(sizeof(struct DList));
+    memset(arraylist,0,sizeof(struct DList));
     arraylist->element_size = element_size;
 
-    d_arraylist_setcapacity(arraylist,initial_capacity);
+    d_list_setcapacity(arraylist,initial_capacity);
 
     return arraylist;
 }
 
 void*
-d_arraylist_append(DArrayListHandle handle,void* data)
+d_list_append(DListHandle handle,void* data)
 {
     if(handle->size + 1 > handle->capacity)
     {
-        if(d_arraylist_setcapacity(handle,handle->capacity * 1.5))
+        if(d_list_setcapacity(handle,handle->capacity * 1.5))
         {
             D_LOG_ERROR("Could not append element", NULL);
             return NULL;
@@ -46,7 +44,7 @@ d_arraylist_append(DArrayListHandle handle,void* data)
 }
 
 int 
-d_arraylist_setcapacity(DArrayListHandle handle,int capacity)
+d_list_setcapacity(DListHandle handle,int capacity)
 {
     handle->capacity = capacity;
     handle->array = realloc(handle->array,handle->capacity * handle->element_size);
@@ -59,20 +57,20 @@ d_arraylist_setcapacity(DArrayListHandle handle,int capacity)
 }
 
 void*
-d_arraylist_get(DArrayListHandle handle,size_t index)
+d_list_get(DListHandle handle,size_t index)
 {
     //void* data = handle->array + (handle->element_size * index);
     return handle->array + (handle->element_size * index);
 }
 
 size_t 
-d_arraylist_getsize(DArrayListHandle handle)
+d_list_getsize(DListHandle handle)
 {
     return handle->size;
 }
 
 void 
-d_destroy_arraylist(DArrayListHandle handle)
+d_destroy_list(DListHandle handle)
 {
     free(handle->array);
     free(handle);

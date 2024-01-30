@@ -36,6 +36,8 @@ typedef DCoord2 DLatLng;
 })
 
 void d_latlng_to_tilenum(DLatLng, int, int*, int*);
+DLatLng d_latlng_add(DLatLng, DLatLng);
+
 void d_tilenum_to_latlng(int, int, int, DLatLng*);
 void d_latlng_to_bbox(DLatLng, int, DBBox*);
 

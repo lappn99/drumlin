@@ -14,10 +14,12 @@
 #include <drumlin/logging.h>
 #include <drumlin/tileservice.h>
 #include <drumlin/renderer.h>
+#include <drumlin/container/list.h>
 
-const char OSM_TILESERVICE_URL[] = "https://tile.openstreetmap.org/%d/%d/%d.png";
+//const char OSM_TILESERVICE_URL[] = "https://tile.openstreetmap.org/%d/%d/%d.png";
 const char CACHE_DIR[] = "/tmp/drumlin/";
 const char CACHE_LOCATION_URI[] = "/tmp/drumlin/%d/%d/%d.png";
+const char DRUMLIN_TILESERVICE_ENVNAME[] = "DRUMLIN_TILESERVICE_URI";
 
 
 typedef struct
@@ -27,13 +29,16 @@ typedef struct
     
 } TilePNGData;
 
-static CURL* curl;
-
 static int create_request_uri(char**,const char* , int, int, int);
 static size_t recieve_data(void*, size_t, size_t, void*);
-static int get_tile_from_server(int, int, int, TilePNGData*);
+static int get_tile_from_server(const char*,int, int, int, TilePNGData*);
 static int save_tile_to_cache(const char*, int,TilePNGData*);
 static int get_tile_from_cache(int, int, int, TilePNGData*);
+
+
+static CURL* curl;
+
+
 
 DTileServiceLayer* 
 d_make_tileservice(DTileServiceLayerDesc* desc)
@@ -90,13 +95,14 @@ d_init_tileservice(void)
         return 0;
     }
     free(user_agent);
+
     return 1;
 
 
 }
 
 int 
-d_tileservice_gettile(int z, int x, int y, DTile* tile)
+d_tileservice_gettile(DTileServiceLayer* tileservice,int z, int x, int y, DTile* tile)
 {
     if(!tile)
     {
@@ -119,7 +125,7 @@ d_tileservice_gettile(int z, int x, int y, DTile* tile)
     }
     else
     {
-        result = get_tile_from_server(z,x,y,&tile_png);
+        result = get_tile_from_server(tileservice->uri_fmt,z,x,y,&tile_png);
         if(result)
         {
             
@@ -145,7 +151,10 @@ d_tileservice_gettile(int z, int x, int y, DTile* tile)
 void 
 d_tileservce_render(DLayer* layer, DBBox view_box, int zoom)
 {
-    //DTileServiceLayer* tileservice = (DTileServiceLayer*)layer; 
+
+    
+
+    DTileServiceLayer* tileservice = (DTileServiceLayer*)layer; 
     DLayerGraphic graphic;
     memset(&graphic,0,sizeof(DLayerGraphic));
     
@@ -157,12 +166,17 @@ d_tileservce_render(DLayer* layer, DBBox view_box, int zoom)
     d_latlng_to_tilenum(view_box.min,zoom, &xmin, &ymin);
     d_latlng_to_tilenum(view_box.max,zoom, &xmax, &ymax);
     
+    
+    
     for(i = xmin; i <= xmax; i++)
     {
         for(j = ymin; j <= ymax; j++)
         {
+
+           
+
             DTile tile;
-            int result = d_tileservice_gettile(zoom,i,j,&tile);
+            int result = d_tileservice_gettile(tileservice,zoom,i,j,&tile);
             if(!result)
             {
                 D_LOG_ERROR("Could not render %d, %d, %d",zoom,i,j);
@@ -177,12 +191,12 @@ d_tileservce_render(DLayer* layer, DBBox view_box, int zoom)
 }
 
 static int
-get_tile_from_server(int z, int x, int y, TilePNGData* tile_png)
+get_tile_from_server(const char* tileservice_uri,int z, int x, int y, TilePNGData* tile_png)
 {
     CURLcode res;
     
     char* url = NULL;
-    int url_size = create_request_uri(&url,OSM_TILESERVICE_URL,z,x,y);
+    int url_size = create_request_uri(&url,tileservice_uri,z,x,y);
     
     if(url_size < 0)
     {

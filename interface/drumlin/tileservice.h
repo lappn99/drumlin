@@ -16,11 +16,11 @@ typedef struct
 {
     char* name;
     char* attribution;
-    char uri_fmt[DTILESERVICE_MAX_URI_LENGTH];
+    const char uri_fmt[DTILESERVICE_MAX_URI_LENGTH];
 } DTileServiceLayerDesc;
 
 int d_init_tileservice(void);
-int d_tileservice_gettile(int, int, int, DTile*);
+int d_tileservice_gettile(DTileServiceLayer*, int, int, int, DTile*);
 void d_tileservce_render(DLayer*, DBBox, int);
 
 DTileServiceLayer* d_make_tileservice(DTileServiceLayerDesc*);

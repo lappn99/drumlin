@@ -7,7 +7,7 @@
 #include <drumlin/tile.h>
 #include <drumlin/renderer.h>
 #include <drumlin/layer.h>
-#include <drumlin/container/arraylist.h>
+#include <drumlin/container/list.h>
 #include <drumlin/math.h>
 #include <drumlin/logging.h>
 
@@ -19,7 +19,7 @@ struct DMap
 {
     DLatLng view_position;
     int zoom;
-    DArrayListHandle layers;
+    DListHandle layers;
     
     
 };
@@ -30,7 +30,7 @@ d_make_map(DMapInitDesc* init)
     DMapHandle handle = malloc(sizeof(struct DMap));
     handle->view_position = init->position;
     handle->zoom = init->zoom;
-    handle->layers = d_make_arraylist(sizeof(DLayer*),5);
+    handle->layers = d_make_list(sizeof(DLayer*),5);
     
     
     return handle;
@@ -41,7 +41,7 @@ d_make_map(DMapInitDesc* init)
 void 
 d_destroy_map(DMapHandle handle)
 {
-    d_destroy_arraylist(handle->layers);
+    d_destroy_list(handle->layers);
     free(handle);
     
 }
@@ -75,14 +75,10 @@ d_map_render(DMapHandle handle)
     d_latlng_to_tilenum(bbox.min,handle->zoom, &xmin, &ymin);
     d_latlng_to_tilenum(bbox.max,handle->zoom, &xmax, &ymax);
     
-
-    
-    
-
     int i = 0;
-    for(i = 0; i < d_arraylist_getsize(handle->layers);i++)
+    for(i = 0; i < d_list_getsize(handle->layers);i++)
     {
-        DLayer* layer = *((DLayer**)d_arraylist_get(handle->layers,i));
+        DLayer* layer = *((DLayer**)d_list_get(handle->layers,i));
         layer->render_graphic_func(layer, bbox, handle->zoom);
     }
 }
@@ -96,7 +92,12 @@ d_map_resolution(DMapHandle map)
 void
 d_map_addlayer(DMapHandle map, DLayer* layer)
 {
-    DLayer* result = *((DLayer**)d_arraylist_append(map->layers,&layer));
+    DLayer* result = *((DLayer**)d_list_append(map->layers,&layer));
     D_LOG_INFO("Added layer: %s", result->metadata.name);
 }
 
+void 
+d_map_slide(DMapHandle map, int zoom, DLatLng latlng)
+{
+    d_map_setview(map,d_latlng_add(map->view_position,latlng),map->zoom + zoom);
+}

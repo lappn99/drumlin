@@ -3,8 +3,7 @@
 
 #include "logging.h"
 #include "app.h"
-#include "container/arraylist.h"
-
+#include "container/list.h"
 
 int drumlin_init(void);
 

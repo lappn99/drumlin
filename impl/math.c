@@ -64,25 +64,8 @@ d_latlng_to_bbox(DLatLng latlng, int zoom, DBBox* bbox)
 
 }
 
-/*
-void 
-d_latlng_to_bbox(DLatLng latlng, int zoom, DBBox* bbox)
+DLatLng 
+d_latlng_add(DLatLng a, DLatLng b)
 {
-    int tile_size = 256;
-    int width, height;
-    height = width = 0;
-    d_app_getwindowsize(&width, &height);
-
-    int xtile, ytile;
-    d_latlng_to_tilenum(latlng,zoom,&xtile, &ytile);
-    int xs = (xtile * tile_size - width / (double)2) / tile_size;
-    int ys = (ytile * tile_size - height / (double)2) / tile_size;
-    int xe = (xtile * tile_size + width / (double)2) / tile_size;
-    int ye = (ytile * tile_size + height / (double)2) / tile_size;
-    DLatLng latlng_s;
-    DLatLng latlng_e;
-    d_tilenum_to_latlng(xs,ys,zoom,&latlng_s);
-    d_tilenum_to_latlng(xe,ye,zoom,&latlng_e);
-    *bbox = bbox(latlng_s, latlng_e);
+    return latlng(a.lat + b.lat, a.lng + b.lng);
 }
-*/

@@ -4,7 +4,7 @@
 CC=gcc
 CCFLAGS=-c -Wall -Werror -fPIC -ggdb
 LDFLAGS=-shared
-MODULES=drumlin map tile tileservice app renderer math container/arraylist
+MODULES=drumlin map tile tileservice app renderer math list
 
 SRCDIR=./impl
 OBJDIR=./obj
@@ -17,7 +17,9 @@ CURRENT_DIR = $(shell pwd)
 TILESERVICE_IMPL=./impl/tileservice/curl/tileservice_curl.c
 APP_IMPL=./impl/app/sdl/app_sdl.c
 RENDERER_IMPL=./impl/renderer/sdl/renderer_sdl.c
-EXAMPLE_LIBS=-ldrumlin -lSDL2 -lm -lcurl
+LIST_IMPL=./impl/container/arraylist.c
+EXAMPLE_LIBS=-ldrumlin -lSDL2 -lm -lcurl -lpthread
+
 
 build: libdrumlin.so
 
@@ -35,6 +37,11 @@ ${OBJDIR}/renderer.o: ${RENDERER_IMPL}
 	@mkdir -p ${dir $@}
 	@echo $@
 	${CC} ${CCFLAGS} ${LIBS} ${INCLUDE} $< -D_GNU_SOURCE -o $@
+
+${OBJDIR}/list.o: ${LIST_IMPL}
+	@mkdir -p ${dir $@}
+	@echo $@
+	${CC} ${CCFLAGS} ${LIBS} ${INCLUDE} $< -D_GNU_SOURCE -o $@	
 
 ${OBJDIR}/%.o : ${SRCDIR}/%.c
 	@mkdir -p ${dir $@}

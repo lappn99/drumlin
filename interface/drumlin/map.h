@@ -24,6 +24,7 @@ void d_map_setview(DMapHandle, DLatLng, int);
 void d_map_render(DMapHandle);
 double d_map_resolution(DMapHandle);
 void d_map_addlayer(DMapHandle, struct DLayer*);
+void d_map_slide(DMapHandle, int,DLatLng);
 
 
 
