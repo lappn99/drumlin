@@ -30,7 +30,7 @@ d_list_append(DListHandle handle,void* data)
 {
     if(handle->size + 1 > handle->capacity)
     {
-        if(d_list_setcapacity(handle,handle->capacity * 1.5))
+        if(d_list_setcapacity(handle,handle->capacity * 1.5) == -1)
         {
             D_LOG_ERROR("Could not append element", NULL);
             return NULL;
@@ -73,5 +73,8 @@ void
 d_destroy_list(DListHandle handle)
 {
     free(handle->array);
+    handle->array = NULL;
     free(handle);
+    handle = NULL;
+    
 }

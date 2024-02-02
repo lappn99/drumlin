@@ -21,6 +21,7 @@ typedef struct
 
 int d_init_tileservice(void);
 int d_tileservice_gettile(DTileServiceLayer*, int, int, int, DTile*);
+int d_tileservice_gettiles(DTileServiceLayer*, int,int,int,int,int, DTile**);
 void d_tileservce_render(DLayer*, DBBox, int);
 
 DTileServiceLayer* d_make_tileservice(DTileServiceLayerDesc*);

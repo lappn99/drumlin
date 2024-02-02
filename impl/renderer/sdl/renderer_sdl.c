@@ -36,10 +36,16 @@ d_renderer_drawraster(DLayerRasterGraphic* raster, int x , int y)
     }
     SDL_Rect dst_rect = {x,y,raster->width_px,raster->height_px};
     SDL_RenderCopy(renderer,texture, NULL, &dst_rect);
-    SDL_RenderPresent(renderer);
+    //SDL_RenderPresent(renderer);
     SDL_DestroyTexture(texture);
     SDL_FreeSurface(surface);
     
+}
+
+void 
+d_renderer_present(void)
+{
+    SDL_RenderPresent(renderer);
 }
 
 void

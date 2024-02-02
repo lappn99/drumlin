@@ -64,6 +64,7 @@ d_map_setview(DMapHandle handle, DLatLng coords, int zoom)
 void
 d_map_render(DMapHandle handle)
 {
+    d_renderer_clear();
     int x,y;
     DBBox bbox;
     y = x = 0;
@@ -81,6 +82,7 @@ d_map_render(DMapHandle handle)
         DLayer* layer = *((DLayer**)d_list_get(handle->layers,i));
         layer->render_graphic_func(layer, bbox, handle->zoom);
     }
+    d_renderer_present();
 }
 
 double 

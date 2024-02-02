@@ -17,7 +17,7 @@ int main(int argc, char** argv)
     });
 
     DMapHandle map = d_make_map(&(DMapInitDesc){
-        .position = latlng(43.8879, -81.3117),
+        .position = latlng(43.9200, -80.0943),
         .zoom = 12
     });
 
