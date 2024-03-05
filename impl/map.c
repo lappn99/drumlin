@@ -80,7 +80,7 @@ d_map_render(DMapHandle handle)
     for(i = 0; i < d_list_getsize(handle->layers);i++)
     {
         DLayer* layer = *((DLayer**)d_list_get(handle->layers,i));
-        layer->render_graphic_func(layer, bbox, handle->zoom);
+        layer->render_graphic_func(layer, bbox, handle->zoom,handle);
     }
     d_renderer_present();
 }
@@ -94,6 +94,7 @@ d_map_resolution(DMapHandle map)
 void
 d_map_addlayer(DMapHandle map, DLayer* layer)
 {
+    
     DLayer* result = *((DLayer**)d_list_append(map->layers,&layer));
     D_LOG_INFO("Added layer: %s", result->metadata.name);
 }
@@ -102,4 +103,10 @@ void
 d_map_slide(DMapHandle map, int zoom, DLatLng latlng)
 {
     d_map_setview(map,d_latlng_add(map->view_position,latlng),map->zoom + zoom);
+}
+
+DLatLng 
+d_map_getpos(DMapHandle map)
+{
+    return map->view_position;
 }

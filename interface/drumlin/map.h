@@ -2,6 +2,7 @@
 #define _DRUMLIN_MAP_H
 
 #include "math.h"
+
 struct DLayer;
 
 struct DMap;
@@ -25,6 +26,7 @@ void d_map_render(DMapHandle);
 double d_map_resolution(DMapHandle);
 void d_map_addlayer(DMapHandle, struct DLayer*);
 void d_map_slide(DMapHandle, int,DLatLng);
+DLatLng d_map_getpos(DMapHandle);
 
 
 

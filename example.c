@@ -1,3 +1,4 @@
+
 #include <drumlin/drumlin.h>
 #include <drumlin/providers.h>
 
@@ -15,9 +16,15 @@ int main(int argc, char** argv)
         .uri_fmt = PROVIDER_OPENSTREETMAP,
         .attribution = "OpenStreetMap"
     });
+    
+    DTileServiceLayer* hiking_overlay = d_make_tileservice(&(DTileServiceLayerDesc){
+        .name = "Hiking Overlay",
+        .uri_fmt = "https://tile.waymarkedtrails.org/hiking/%d/%d/%d.png",
+        .attribution = "waymarkedtrails"
+    });
 
     DMapHandle map = d_make_map(&(DMapInitDesc){
-        .position = latlng(43.9200, -80.0943),
+        .position = latlng(44.3011, -78.333),
         .zoom = 12
     });
 
@@ -25,6 +32,7 @@ int main(int argc, char** argv)
     
     D_LOG_INFO("Map resolution: %lf",d_map_resolution(map));
     d_map_addlayer(map,(DLayer*)tileservice);
+    //d_map_addlayer(map,(DLayer*)hiking_overlay);
     d_map_render(map);
 
     while(!drumlin_shouldquit())

@@ -14,9 +14,6 @@
 #define DEG_2_RAD(DEGREES) (DEGREES * M_PI / 180.0)
 #define RAD_2_DEG(RADIANS) (RADIANS * (180 / M_PI))
 
-#define EARTH_CIR_METERS 40075016.686
-const double DEGREES_PER_METER = 360 / EARTH_CIR_METERS;
-
 void 
 d_latlng_to_tilenum(DLatLng latlng, int zoom, int* x, int* y)
 {
@@ -61,11 +58,24 @@ d_latlng_to_bbox(DLatLng latlng, int zoom, DBBox* bbox)
     max.lat = latlng.lat - shiftDegreesNS;
     max.lng = latlng.lng + shiftDegreesEW;
     *bbox = bbox(min,max);
-
 }
+
+
 
 DLatLng 
 d_latlng_add(DLatLng a, DLatLng b)
 {
     return latlng(a.lat + b.lat, a.lng + b.lng);
+}
+
+DLatLng
+d_latlng_sub(DLatLng a, DLatLng b)
+{
+    return latlng(a.lat - b.lat, a.lng - b.lng);
+}
+
+DLatLng 
+d_latlng_radians(DLatLng a)
+{
+    return latlng(DEG_2_RAD(a.lat), DEG_2_RAD(a.lng));
 }

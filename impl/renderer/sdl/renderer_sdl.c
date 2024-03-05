@@ -19,11 +19,14 @@ d_init_renderer(void)
 }
 
 void 
-d_renderer_drawraster(DLayerRasterGraphic* raster, int x , int y)
+d_renderer_drawraster(DLayerRasterGraphic* raster, int x, int y)
 {
 
-    SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(raster->raster,raster->width_px,raster->height_px,raster->bands * 8,raster->width_px * 3,
-        0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+    SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(raster->raster,raster->width_px,
+        raster->height_px,raster->bands * 8,
+        raster->width_px * raster->bands,
+        0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000
+    );
 
     if(!surface)
     {

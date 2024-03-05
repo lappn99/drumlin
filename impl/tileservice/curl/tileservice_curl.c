@@ -1,6 +1,8 @@
+#include <alloca.h>
 #include <curl/curl.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <openssl/sha.h>
 #include <pthread.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -10,16 +12,25 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
+
+#include <drumlin/app.h>
+#include <drumlin/map.h>
 #include <drumlin/math.h>
 #include <drumlin/logging.h>
 #include <drumlin/tileservice.h>
 #include <drumlin/renderer.h>
 #include <drumlin/container/list.h>
+#include <drumlin/projection.h>
 
 //const char OSM_TILESERVICE_URL[] = "https://tile.openstreetmap.org/%d/%d/%d.png";
 const char CACHE_DIR[] = "/tmp/drumlin/";
 const char CACHE_LOCATION_URI[] = "/tmp/drumlin/%d/%d/%d.png";
 const char DRUMLIN_TILESERVICE_ENVNAME[] = "DRUMLIN_TILESERVICE_URI";
+
+#define DRUMLIN_CACHE_TILES 1
+#ifndef DRUMLIN_CACHE_TILES 
+#define DRUMLIN_CACHE_TILES 1
+#endif
 
 
 typedef struct
@@ -63,18 +74,15 @@ typedef struct
 
 } AsyncOperation;
 
-static int create_request_uri(char**,const char* , int, int, int);
+static int create_request_uri(char**, const char*, int, int, int);
 static size_t recieve_data(void*, size_t, size_t, void*);
-static int get_tile_from_server(const char*,int, int, int, TilePNGData*,AsyncOperation*);
+static int get_tile_from_server(const char*, int, int, int, TilePNGData*, AsyncOperation*);
 static int get_tile_from_cache(int, int, int, TilePNGData*);
-static int save_tile_to_cache(const char*, int,TilePNGData*);
+static int save_tile_to_cache(const char*, int, TilePNGData*);
 static void prepare_curl_easy_handle(CURL*);
-
-
 
 static CURLM* curl_multi;
 static char* user_agent;
-
 
 DTileServiceLayer* 
 d_make_tileservice(DTileServiceLayerDesc* desc)
@@ -211,6 +219,9 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
     int height = y2 - y1;
     DListHandle async_operations = d_make_list(sizeof(AsyncOperation),(width + 1) * (height + 1));
     DListHandle pngs = d_make_list(sizeof(TilePNGData*), (width + 1) * (height + 1));
+    
+    unsigned char* uri_hash = SHA1((unsigned char*)tileservice->uri_fmt,strlen(tileservice->uri_fmt),NULL);
+    D_LOG_INFO("%s",uri_hash);
 
     for(y = y1; y <= y2; y++)
     {
@@ -228,7 +239,7 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
             png->cache_location_uri = cache_location_uri;
             png->uri_size = uri_size;
             
-            if(access(cache_location_uri,F_OK) == 0)
+            if(access(cache_location_uri,F_OK) == 0 && DRUMLIN_CACHE_TILES)
             {
                 int result = get_tile_from_cache(z,x,y,png);
                 if(!result)
@@ -285,19 +296,24 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
         {
             AsyncOperation* operation = d_list_get(async_operations,(y * (width + 1)) + x);
             TilePNGData* png = *((TilePNGData**)d_list_get(pngs,(y * (width + 1)) + x));
-           
-            
+
             DTile* tile = &tiles[y][x];
             tile->y = y + y1;
             tile->x = x + x1;
 
             tiles[y][x].raster = stbi_load_from_memory(png->buffer,png->size,&tile->width,
                 &tile->height,&tile->bands,0);
+                
             if(operation->operation_type == OPERATION_CURL)
             {
+                if(DRUMLIN_CACHE_TILES)
+                {
+                    save_tile_to_cache(png->cache_location_uri,png->uri_size,png);
+                }
+                
                 curl_multi_remove_handle(curl_multi,operation->curl_op.handle);
                 curl_easy_cleanup(operation->curl_op.handle);   
-                save_tile_to_cache(png->cache_location_uri,png->uri_size,png);
+                
             }
             free((char*)png->cache_location_uri);
             free(png->buffer);
@@ -313,15 +329,12 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
 }
 
 void 
-d_tileservce_render(DLayer* layer, DBBox view_box, int zoom)
+d_tileservce_render(DLayer* layer, DBBox view_box, int zoom, void* userdata)
 {
-
-    
-
     DTileServiceLayer* tileservice = (DTileServiceLayer*)layer; 
     DLayerGraphic graphic;
     memset(&graphic,0,sizeof(DLayerGraphic));
-    
+    DMapHandle map = (DMapHandle)userdata;
     
     int xmin, ymin;
     int xmax, ymax;
@@ -330,24 +343,43 @@ d_tileservce_render(DLayer* layer, DBBox view_box, int zoom)
     d_latlng_to_tilenum(view_box.min,zoom, &xmin, &ymin);
     d_latlng_to_tilenum(view_box.max,zoom, &xmax, &ymax);
     DTile** tiles = malloc(sizeof(DTile*) * ((ymax - ymin) + 1));
+
     for(i = 0; i <= (ymax - ymin);i++)
     {
         tiles[i] = malloc(sizeof(DTile) * ((xmax - xmin) + 1));
         memset(tiles[i],0,sizeof(DTile) * ((xmax - xmin) + 1));
     }
+
     d_tileservice_gettiles(tileservice,zoom,xmin,ymin,xmax,ymax,tiles);
     
+    int window_width, window_height;
+    d_app_getwindowsize(&window_width,&window_height);
+    //double resolution = d_map_resolution(map);
+    DProjectionHandle projection = d_create_projection("EPSG:4326","EPSG:3857");
+    DCoord2 camera_coord_projected = d_projection_transformcoord(projection,d_map_getpos(map));
+
     for(int y = 0; y <= (ymax - ymin); y++)
     {
         for(int x = 0; x <= (xmax - xmin); x++)
         {
           
+            
             DTile* tile = &tiles[y][x];
-            d_renderer_drawraster((DLayerRasterGraphic*)tile,x * 256,y * 256);
+            DLatLng tile_latlng;
+            //double x,y;
+            //y = x = 0;
+            d_tilenum_to_latlng(tile->x, tile->y, zoom, &tile_latlng);
+            
+            DCoord2 projected_coord = d_projection_transformcoord(projection,tile_latlng);
+            D_LOG_INFO("Transformed to EPSG:3857 %lf,%lf",projected_coord.x, projected_coord.y);
+
+                        
 
             free(tile->raster);
         }
     }
+
+    free(projection);
 
     for(i = 0; i <= (ymax - ymin);i++)
     {
@@ -480,12 +512,12 @@ save_tile_to_cache(const char* uri, int uri_size, TilePNGData* image)
 static void
 prepare_curl_easy_handle(CURL* curl)
 {
-    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,recieve_data);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,recieve_data);
     curl_easy_setopt(curl, CURLOPT_CA_CACHE_TIMEOUT, 604800L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,recieve_data);
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl,CURLOPT_USERAGENT,user_agent);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT,user_agent);
 }
 
 static int
@@ -521,8 +553,10 @@ recieve_data(void* data, size_t size, size_t nmemb, void* userdata)
     memcpy(&(tile->buffer[tile->size]),data,size * nmemb);
     tile->size += size * nmemb;
     
-    D_LOG_INFO("Received %d data",size * nmemb);
+    //D_LOG_INFO("Received %d data",size * nmemb);
 
     return size * nmemb;
 
 }
+
+

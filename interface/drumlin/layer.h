@@ -1,6 +1,7 @@
 #ifndef _DRUMLIN_LAYER_H
 #define _DRUMLIN_LAYER_H
 
+
 #include "math.h"
 
 #define DLAYER_NAME_MAXLEN 64
@@ -45,9 +46,10 @@ typedef struct
 
 typedef struct DLayer
 {
+    
     DLayerMetadata metadata;
     DLayerType type;
-    void (*render_graphic_func)(struct DLayer*, DBBox, int);
+    void (*render_graphic_func)(struct DLayer*, DBBox, int, void*);
 
     
 } DLayer;
