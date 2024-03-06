@@ -1,7 +1,8 @@
+#include <string.h>
 #include <stdlib.h> //malloc, free
 #include <math.h>
 
-
+#include <drumlin/app.h>
 #include <drumlin/tileservice.h>
 #include <drumlin/map.h>
 #include <drumlin/tile.h>
@@ -10,17 +11,20 @@
 #include <drumlin/container/list.h>
 #include <drumlin/math.h>
 #include <drumlin/logging.h>
+#include <drumlin/projection.h>
 
 const int MIN_ZOOM = 0;
 const int MAX_ZOOM = 18;
 const double MIN_RESOLUTION = 156543.03;
 
+#define PROJ_STRING_MAXLEN 16
 struct DMap
 {
     DLatLng view_position;
     int zoom;
     DListHandle layers;
-    
+    char gcs[PROJ_STRING_MAXLEN];
+    char pcs[PROJ_STRING_MAXLEN];
     
 };
 
@@ -31,7 +35,14 @@ d_make_map(DMapInitDesc* init)
     handle->view_position = init->position;
     handle->zoom = init->zoom;
     handle->layers = d_make_list(sizeof(DLayer*),5);
-    
+    strcpy(&handle->pcs[0],"EPSG:3857");
+    strcpy(&handle->gcs[0],"EPSG:4326");
+    if(init->pcs)
+    {
+        strncpy(handle->pcs,init->pcs,PROJ_STRING_MAXLEN);
+    }
+
+
     
     return handle;
 }
@@ -100,13 +111,39 @@ d_map_addlayer(DMapHandle map, DLayer* layer)
 }
 
 void 
-d_map_slide(DMapHandle map, int zoom, DLatLng latlng)
+d_map_slide(DMapHandle map, int zoom, DCoord2 pixels, double speed)
 {
-    d_map_setview(map,d_latlng_add(map->view_position,latlng),map->zoom + zoom);
+    double resolution = d_resolution_at_latitude(0,map->zoom);
+
+    float horizontal_dpi, vertical_dpi;
+    d_app_getdpi(&horizontal_dpi,&vertical_dpi);
+    
+    double horizontal_scale = horizontal_dpi * (1/0.0254) * resolution;
+    double vertical_scale = vertical_dpi * (1/0.0254) * resolution;
+
+   
+
+    DCoord2 meters_to_move = coord2((pixels.x * speed) * (horizontal_scale / 1000),(pixels.y * speed) * (vertical_scale / 1000));
+    DProjectionHandle projection = d_create_projection(d_map_getgcs(map),d_map_getpcs(map));
+    DLatLng degrees_to_move = d_projection_transform_coord(projection,meters_to_move,true);
+
+    d_map_setview(map,d_latlng_add(map->view_position,degrees_to_move),map->zoom + zoom);
+    d_destroy_projection(projection);
 }
 
 DLatLng 
 d_map_getpos(DMapHandle map)
 {
     return map->view_position;
+}
+
+const char* 
+d_map_getgcs(const DMapHandle map)
+{
+    return map->gcs;
+}
+const char* 
+d_map_getpcs(const DMapHandle map)
+{
+    return map->pcs;
 }

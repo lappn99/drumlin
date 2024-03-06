@@ -134,3 +134,14 @@ create_key_lut(void)
     key_lookup[DRUMLIN_KEY_MINUS] = SDLK_MINUS;
     key_lookup[DRUMLIN_KEY_SPACE] = SDLK_SPACE;
 }
+
+void 
+d_app_getdpi(float* horizontal_dpi, float* vertical_dpi)
+{
+
+    int active_index = SDL_GetWindowDisplayIndex(window);
+    if(SDL_GetDisplayDPI(active_index,NULL,horizontal_dpi, vertical_dpi) != 0)
+    {
+        D_LOG_WARNING("Could not get DPI of display",NULL);
+    }
+}

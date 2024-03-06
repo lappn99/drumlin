@@ -13,6 +13,7 @@ typedef struct
 {
     DLatLng position;
     int zoom;
+    const char* pcs;
 } DMapInitDesc;
 
 DMapHandle d_make_map(DMapInitDesc*);
@@ -25,8 +26,10 @@ void d_map_setview(DMapHandle, DLatLng, int);
 void d_map_render(DMapHandle);
 double d_map_resolution(DMapHandle);
 void d_map_addlayer(DMapHandle, struct DLayer*);
-void d_map_slide(DMapHandle, int,DLatLng);
+void d_map_slide(DMapHandle, int,DCoord2, double);
 DLatLng d_map_getpos(DMapHandle);
+const char* d_map_getgcs(const DMapHandle);
+const char* d_map_getpcs(const DMapHandle);
 
 
 

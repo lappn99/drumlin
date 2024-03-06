@@ -39,6 +39,7 @@ int drumlin_shouldquit(void);
 void* d_app_getwindowhandle(void);
 void d_app_update(void);
 void d_app_getwindowsize(int*, int*);
+void d_app_getdpi(float*, float*);
 
 struct DKeyEvent* d_app_getkeydown(void);
 int d_app_iskey(struct DKeyEvent*, DKey);

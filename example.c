@@ -24,8 +24,10 @@ int main(int argc, char** argv)
     });
 
     DMapHandle map = d_make_map(&(DMapInitDesc){
-        .position = latlng(44.3011, -78.333),
-        .zoom = 12
+        .position = latlng(44.301111, -78.333333),
+        //.position = latlng(0,0),
+        .zoom = 12,
+        
     });
 
     int x,y;
@@ -39,27 +41,28 @@ int main(int argc, char** argv)
     {
         d_app_update();   
         struct DKeyEvent* key_event = d_app_getkeydown();
-        DLatLng slide = latlng(0,0);
+        double movespeed = 10;
+        DCoord2 slide = coord2(0,0);
         int slide_zoom = 0;
         int update = 0;
         if(d_app_iskey(key_event,DRUMLIN_KEY_UP))
         {
-            slide = latlng(0.05,0);
+            slide = coord2(0,1);
             update = 1;
         }
         else if(d_app_iskey(key_event,DRUMLIN_KEY_LEFT))
         {
-            slide = latlng(0,-0.05);
+            slide = coord2(-1,0);
             update = 1;
         }
         else if(d_app_iskey(key_event,DRUMLIN_KEY_RIGHT))
         {
-            slide = latlng(0,0.05);
+            slide = coord2(1,0);
             update = 1;
         }
         else if(d_app_iskey(key_event,DRUMLIN_KEY_DOWN))
         {
-            slide = latlng(-0.05,0);
+            slide = coord2(0,-1);
             update = 1;
         }
         else if(d_app_iskey(key_event,DRUMLIN_KEY_SPACE))
@@ -74,7 +77,7 @@ int main(int argc, char** argv)
         }
         if(update)
         {
-            d_map_slide(map,slide_zoom,slide);
+            d_map_slide(map,slide_zoom,slide,movespeed);
             d_map_render(map);
         }   
     }

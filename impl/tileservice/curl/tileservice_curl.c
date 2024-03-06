@@ -221,7 +221,7 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
     DListHandle pngs = d_make_list(sizeof(TilePNGData*), (width + 1) * (height + 1));
     
     unsigned char* uri_hash = SHA1((unsigned char*)tileservice->uri_fmt,strlen(tileservice->uri_fmt),NULL);
-    D_LOG_INFO("%s",uri_hash);
+    
 
     for(y = y1; y <= y2; y++)
     {
@@ -354,15 +354,16 @@ d_tileservce_render(DLayer* layer, DBBox view_box, int zoom, void* userdata)
     
     int window_width, window_height;
     d_app_getwindowsize(&window_width,&window_height);
-    double resolution =  d_map_resolution(map);
-    DProjectionHandle projection = d_create_projection("EPSG:4326","EPSG:3857");
     
-    DCoord2 camera_pos_projected = d_projection_transform_coord(projection,d_map_getpos(map));
-
+    DProjectionHandle projection = d_create_projection(d_map_getgcs(map),d_map_getpcs(map));
+    
+    DCoord2 camera_pos_projected = d_projection_transform_coord(projection,d_map_getpos(map),false);
+    double resolution = d_resolution_at_latitude(0,zoom);
     DCoord2 screen_origin;
 
     screen_origin.x = camera_pos_projected.x - (window_width / 2) * (resolution);
     screen_origin.y = camera_pos_projected.y - (window_height / 2) * (resolution);
+    
 
     for(int y = 0; y <= (ymax - ymin); y++)
     {
@@ -376,16 +377,17 @@ d_tileservce_render(DLayer* layer, DBBox view_box, int zoom, void* userdata)
             //y = x = 0;
             d_tilenum_to_latlng(tile->x, tile->y, zoom, &tile_latlng);
             
-            DCoord2 projected_coord = d_projection_transform_coord(projection,tile_latlng);
-            
-            //resolution = d_resolution_at_latitude(tile_latlng.lat,zoom);
+           
+
+            DCoord2 projected_coord = d_projection_transform_coord(projection,tile_latlng,false);
+
 
             DCoord2 screen_coords = coord2(
                 (projected_coord.x - screen_origin.x) * (1/resolution), 
                 (projected_coord.y - screen_origin.y) * (1/resolution)
             );
 
-            D_LOG_INFO("Transformed to EPSG:3857 %lf,%lf",tile_latlng.lng, tile_latlng.lat);
+           
             d_renderer_drawraster((DLayerRasterGraphic*)tile,screen_coords.x, window_height - screen_coords.y);
                         
 
@@ -489,7 +491,7 @@ save_tile_to_cache(const char* uri, int uri_size, TilePNGData* image)
     char* tmp_uri = malloc((uri_size * sizeof(char)) + 1);
     memset(tmp_uri,'\0',(uri_size * sizeof(char)) + 1);
     char* next_dir;
-    D_LOG_INFO("%s",uri);
+    
     next_dir = strchr(uri,'/');
     
     while((next_dir = strchr(next_dir + 1,'/')) != NULL)

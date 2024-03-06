@@ -14,6 +14,29 @@
 #define DEG_2_RAD(DEGREES) (DEGREES * M_PI / 180.0)
 #define RAD_2_DEG(RADIANS) (RADIANS * (180 / M_PI))
 
+
+static const double resolution_equator[19] = {
+    156543.03,
+    78271.52,
+    39135.76,
+    19567.88,
+    9783.94,
+    4891.97,
+    2445.98,
+    1222.99,
+    611.50,
+    305.75,
+    152.87,
+    76.437,
+    38.219,
+    19.109,
+    9.5546,
+    4.7773,
+    2.3887,
+    1.1943,
+    0.5972 	
+};
+
 void 
 d_latlng_to_tilenum(DLatLng latlng, int zoom, int* x, int* y)
 {
@@ -83,5 +106,5 @@ d_latlng_radians(DLatLng a)
 double  
 d_resolution_at_latitude(double latitude, int zoom)
 {
-    return 156543.03  * cos(latitude) / pow(2,zoom);
+    return resolution_equator[zoom] * cos(latitude);
 }
