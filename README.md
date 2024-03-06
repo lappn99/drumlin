@@ -2,7 +2,7 @@
 Interactive map maker for native applications in C
 
 ### Building
-Libraries required: `SDL2, curl`
+Libraries required: `SDL2, curl, proj`
 
 `sudo make install` to install library to machine
 

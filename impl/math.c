@@ -79,3 +79,9 @@ d_latlng_radians(DLatLng a)
 {
     return latlng(DEG_2_RAD(a.lat), DEG_2_RAD(a.lng));
 }
+
+double  
+d_resolution_at_latitude(double latitude, int zoom)
+{
+    return 156543.03  * cos(latitude) / pow(2,zoom);
+}

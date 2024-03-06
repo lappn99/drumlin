@@ -9,8 +9,8 @@ typedef struct DProjection* DProjectionHandle ;
 DProjectionHandle d_create_projection(const char*, const char*);
 void d_destroy_projection(DProjectionHandle);
 
-DCoord2 d_projection_transformcoord(DProjectionHandle,DCoord2);
-
+DCoord2 d_projection_transform_coord(DProjectionHandle,DCoord2);
+DBBox d_projection_transform_bbox(DProjectionHandle, DBBox);
 
 
 #endif

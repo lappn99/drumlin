@@ -88,7 +88,7 @@ d_map_render(DMapHandle handle)
 double 
 d_map_resolution(DMapHandle map)
 {
-    return MIN_RESOLUTION * cos(map->view_position.lat) / (pow(2.0,map->zoom));
+    return d_resolution_at_latitude(map->view_position.lat,map->zoom);
 }
 
 void

@@ -11,18 +11,27 @@ struct DProjection
     PJ* projection;
 };
 
-
-
-
-
 DCoord2 
-d_projection_transformcoord(DProjectionHandle handle,DCoord2 src_coord)
+d_projection_transform_coord(DProjectionHandle handle,DCoord2 src_coord)
 {
     PJ_COORD a = proj_coord(src_coord.lat, src_coord.lng,0,0);
 
     PJ_COORD b = proj_trans(handle->projection, PJ_FWD,a);
 
     return coord2(b.v[0],b.v[1]);
+}
+
+DBBox 
+d_projection_transform_bbox(DProjectionHandle handle, DBBox src_bbox)
+{
+    DBBox dest_bbox = {0};
+    int i = 0;
+    dest_bbox.min = d_projection_transform_coord(handle,src_bbox.min);
+    dest_bbox.max = d_projection_transform_coord(handle, src_bbox.max);
+
+    return dest_bbox;
+
+
 }
 
 

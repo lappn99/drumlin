@@ -354,9 +354,15 @@ d_tileservce_render(DLayer* layer, DBBox view_box, int zoom, void* userdata)
     
     int window_width, window_height;
     d_app_getwindowsize(&window_width,&window_height);
-    //double resolution = d_map_resolution(map);
+    double resolution =  d_map_resolution(map);
     DProjectionHandle projection = d_create_projection("EPSG:4326","EPSG:3857");
-    DCoord2 camera_coord_projected = d_projection_transformcoord(projection,d_map_getpos(map));
+    
+    DCoord2 camera_pos_projected = d_projection_transform_coord(projection,d_map_getpos(map));
+
+    DCoord2 screen_origin;
+
+    screen_origin.x = camera_pos_projected.x - (window_width / 2) * (resolution);
+    screen_origin.y = camera_pos_projected.y - (window_height / 2) * (resolution);
 
     for(int y = 0; y <= (ymax - ymin); y++)
     {
@@ -370,9 +376,17 @@ d_tileservce_render(DLayer* layer, DBBox view_box, int zoom, void* userdata)
             //y = x = 0;
             d_tilenum_to_latlng(tile->x, tile->y, zoom, &tile_latlng);
             
-            DCoord2 projected_coord = d_projection_transformcoord(projection,tile_latlng);
-            D_LOG_INFO("Transformed to EPSG:3857 %lf,%lf",projected_coord.x, projected_coord.y);
+            DCoord2 projected_coord = d_projection_transform_coord(projection,tile_latlng);
+            
+            //resolution = d_resolution_at_latitude(tile_latlng.lat,zoom);
 
+            DCoord2 screen_coords = coord2(
+                (projected_coord.x - screen_origin.x) * (1/resolution), 
+                (projected_coord.y - screen_origin.y) * (1/resolution)
+            );
+
+            D_LOG_INFO("Transformed to EPSG:3857 %lf,%lf",tile_latlng.lng, tile_latlng.lat);
+            d_renderer_drawraster((DLayerRasterGraphic*)tile,screen_coords.x, window_height - screen_coords.y);
                         
 
             free(tile->raster);

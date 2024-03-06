@@ -52,7 +52,7 @@ DLatLng d_latlng_radians(DLatLng);
 
 void d_tilenum_to_latlng(int, int, int, DLatLng*);
 void d_latlng_to_bbox(DLatLng, int, DBBox*);
-
+double d_resolution_at_latitude(double, int);
 
 
 #endif //_DRUMLIN_MATH_H
