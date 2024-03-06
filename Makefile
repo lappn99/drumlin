@@ -2,7 +2,7 @@
 .SUFFIXES: .c .o
 
 CC=gcc
-CCFLAGS=-c -Wall -fPIC -ggdb
+CCFLAGS=-c -Wall -Werror -fPIC -ggdb
 LDFLAGS=-shared
 MODULES=drumlin map tile tileservice app renderer math list projection
 

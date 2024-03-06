@@ -220,7 +220,7 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
     DListHandle async_operations = d_make_list(sizeof(AsyncOperation),(width + 1) * (height + 1));
     DListHandle pngs = d_make_list(sizeof(TilePNGData*), (width + 1) * (height + 1));
     
-    unsigned char* uri_hash = SHA1((unsigned char*)tileservice->uri_fmt,strlen(tileservice->uri_fmt),NULL);
+    //unsigned char* uri_hash = SHA1((unsigned char*)tileservice->uri_fmt,strlen(tileservice->uri_fmt),NULL);
     
 
     for(y = y1; y <= y2; y++)
@@ -356,14 +356,7 @@ d_tileservce_render(DLayer* layer, DBBox view_box, int zoom, void* userdata)
     d_app_getwindowsize(&window_width,&window_height);
     
     DProjectionHandle projection = d_create_projection(d_map_getgcs(map),d_map_getpcs(map));
-    
-    DCoord2 camera_pos_projected = d_projection_transform_coord(projection,d_map_getpos(map),false);
-    double resolution = d_resolution_at_latitude(0,zoom);
-    DCoord2 screen_origin;
 
-    screen_origin.x = camera_pos_projected.x - (window_width / 2) * (resolution);
-    screen_origin.y = camera_pos_projected.y - (window_height / 2) * (resolution);
-    
 
     for(int y = 0; y <= (ymax - ymin); y++)
     {
@@ -373,24 +366,12 @@ d_tileservce_render(DLayer* layer, DBBox view_box, int zoom, void* userdata)
             
             DTile* tile = &tiles[y][x];
             DLatLng tile_latlng;
-            //double x,y;
-            //y = x = 0;
+
             d_tilenum_to_latlng(tile->x, tile->y, zoom, &tile_latlng);
+
             
-           
-
-            DCoord2 projected_coord = d_projection_transform_coord(projection,tile_latlng,false);
-
-
-            DCoord2 screen_coords = coord2(
-                (projected_coord.x - screen_origin.x) * (1/resolution), 
-                (projected_coord.y - screen_origin.y) * (1/resolution)
-            );
-
-           
-            d_renderer_drawraster((DLayerRasterGraphic*)tile,screen_coords.x, window_height - screen_coords.y);
-                        
-
+            d_renderer_drawraster_geo((DLayerRasterGraphic*)tile,map,tile_latlng,projection);          
+            
             free(tile->raster);
         }
     }

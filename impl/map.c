@@ -72,6 +72,12 @@ d_map_setview(DMapHandle handle, DLatLng coords, int zoom)
     handle->zoom = zoom;
 }
 
+int 
+d_map_getzoom(DMapHandle handle)
+{
+    return handle->zoom;
+}
+
 void
 d_map_render(DMapHandle handle)
 {

@@ -3,6 +3,7 @@
 #include <drumlin/renderer.h>
 #include <drumlin/app.h>
 #include <drumlin/logging.h>
+#include <drumlin/math.h>
 
 static SDL_Renderer* renderer;
 
@@ -19,7 +20,7 @@ d_init_renderer(void)
 }
 
 void 
-d_renderer_drawraster(DLayerRasterGraphic* raster, int x, int y)
+d_renderer_drawraster(const DLayerRasterGraphic* raster, int x, int y)
 {
 
     SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(raster->raster,raster->width_px,
@@ -44,6 +45,36 @@ d_renderer_drawraster(DLayerRasterGraphic* raster, int x, int y)
     SDL_FreeSurface(surface);
     
 }
+
+void 
+d_renderer_drawraster_geo(const DLayerRasterGraphic* raster,const DMapHandle map, DLatLng position,const DProjectionHandle projection)
+{
+    
+    DCoord2 camera_pos_projected = d_projection_transform_coord(projection,d_map_getpos(map),false);
+    
+    double resolution = d_resolution_at_latitude(0, d_map_getzoom(map));
+
+    int window_width, window_height;
+    d_app_getwindowsize(&window_width,&window_height);
+
+    DCoord2 screen_origin;
+
+    screen_origin.x = camera_pos_projected.x - (window_width / 2) * (resolution);
+    screen_origin.y = camera_pos_projected.y - (window_height / 2) * (resolution);
+
+    DCoord2 projected_coord = d_projection_transform_coord(projection,position,false);
+
+
+    DCoord2 screen_coords = coord2(
+        (projected_coord.x - screen_origin.x) * (1/resolution), 
+        (projected_coord.y - screen_origin.y) * (1/resolution)
+    );
+
+    d_renderer_drawraster(raster,screen_coords.x, window_height - screen_coords.y);
+    
+
+
+}   
 
 void 
 d_renderer_present(void)

@@ -23,6 +23,7 @@ void d_destroy_map(DMapHandle);
 //Latitude, Longitude
 //Zoom
 void d_map_setview(DMapHandle, DLatLng, int);
+int d_map_getzoom(DMapHandle);
 void d_map_render(DMapHandle);
 double d_map_resolution(DMapHandle);
 void d_map_addlayer(DMapHandle, struct DLayer*);

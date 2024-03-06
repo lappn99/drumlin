@@ -6,7 +6,7 @@ int main(int argc, char** argv)
 {
     drumlin_init();
     drumlin_start(&(DAppInitDesc){
-        .width = 900,
+        .width = 1280,
         .height = 720,
         .title = "Drumlin example"
     });
