@@ -2,6 +2,7 @@
 #define _DRUMLIN_MAP_H
 
 #include "math.h"
+#include <drumlin/projection.h>
 
 struct DLayer;
 
@@ -31,6 +32,7 @@ void d_map_slide(DMapHandle, int,DCoord2, double);
 DLatLng d_map_getpos(DMapHandle);
 const char* d_map_getgcs(const DMapHandle);
 const char* d_map_getpcs(const DMapHandle);
+DProjectionHandle d_map_getprojection(const DMapHandle);
 
 
 

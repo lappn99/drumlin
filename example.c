@@ -11,21 +11,36 @@ int main(int argc, char** argv)
         .title = "Drumlin example"
     });
 
+    DImage* skillissue = d_image_loadfromfile("/home/nathanl/Pictures/diagnosis-skill-issue.png");
+    DImage* based = d_image_loadfromfile("/home/nathanl/Pictures/based.png");
+
     DTileServiceLayer* tileservice = d_make_tileservice(&(DTileServiceLayerDesc){
         .name = "OSM Tile Service",
         .uri_fmt = PROVIDER_OPENSTREETMAP,
         .attribution = "OpenStreetMap"
     });
-    
-    DTileServiceLayer* hiking_overlay = d_make_tileservice(&(DTileServiceLayerDesc){
-        .name = "Hiking Overlay",
-        .uri_fmt = "https://tile.waymarkedtrails.org/hiking/%d/%d/%d.png",
-        .attribution = "waymarkedtrails"
+
+    DRasterLayer* skillissue_quebec = d_make_rasterlayer(&(DRasterLayerDesc){
+        .name = "Skill Issue",
+        .attribution = "Nathan Lapp",
+        .image = skillissue,
+        .position = latlng(52, -72)
+    });
+    DRasterLayer* skillissue_france = d_rasterlayer_copy(skillissue_quebec);
+    skillissue_france->position = latlng(48.85, 2.35);
+
+    DRasterLayer* skillissue_russia = d_rasterlayer_copy(skillissue_quebec);
+    skillissue_russia->position = latlng(55.755833, 37.617222);
+
+    DRasterLayer* based_orangeville = d_make_rasterlayer(&(DRasterLayerDesc){
+        .name = "Based",
+        .attribution = "Nathan Lapp",
+        .image = based,
+        .position = latlng(43.915278, -80.108611)
     });
 
     DMapHandle map = d_make_map(&(DMapInitDesc){
         .position = latlng(44.301111, -78.333333),
-        //.position = latlng(0,0),
         .zoom = 12,
         
     });
@@ -34,6 +49,11 @@ int main(int argc, char** argv)
     
     D_LOG_INFO("Map resolution: %lf",d_map_resolution(map));
     d_map_addlayer(map,(DLayer*)tileservice);
+    d_map_addlayer(map,(DLayer*)skillissue_quebec);
+    d_map_addlayer(map,(DLayer*)skillissue_france);
+    d_map_addlayer(map,(DLayer*)skillissue_russia);
+    d_map_addlayer(map,(DLayer*)based_orangeville);
+
     //d_map_addlayer(map,(DLayer*)hiking_overlay);
     d_map_render(map);
 
@@ -81,7 +101,11 @@ int main(int argc, char** argv)
             d_map_render(map);
         }   
     }
+    d_destroy_rasterlayer(skillissue_quebec);
+    d_destroy_rasterlayer(skillissue_france);
+    d_destroy_rasterlayer(skillissue_russia);
     d_destroy_tileservice(tileservice);
+    d_destroy_image(skillissue);
     d_destroy_map(map);
     drumlin_stop();
 }

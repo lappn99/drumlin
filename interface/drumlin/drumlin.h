@@ -9,6 +9,7 @@ int drumlin_init(void);
 
 #include <drumlin/tileservice.h>
 #include <drumlin/map.h>
+#include <drumlin/rasterlayer.h>
 
 
 #endif //_DRUMLIN_H

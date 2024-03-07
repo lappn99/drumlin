@@ -370,7 +370,7 @@ d_tileservce_render(DLayer* layer, DBBox view_box, int zoom, void* userdata)
             d_tilenum_to_latlng(tile->x, tile->y, zoom, &tile_latlng);
 
             
-            d_renderer_drawraster_geo((DLayerRasterGraphic*)tile,map,tile_latlng,projection);          
+            d_renderer_drawraster_geo((DLayerRasterGraphic*)tile,map,tile_latlng,(DBBox){0},projection);          
             
             free(tile->raster);
         }

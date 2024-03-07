@@ -47,7 +47,9 @@ d_renderer_drawraster(const DLayerRasterGraphic* raster, int x, int y)
 }
 
 void 
-d_renderer_drawraster_geo(const DLayerRasterGraphic* raster,const DMapHandle map, DLatLng position,const DProjectionHandle projection)
+d_renderer_drawraster_geo(const DLayerRasterGraphic* raster,
+    const DMapHandle map, DLatLng position, DBBox extent,
+    const DProjectionHandle projection)
 {
     
     DCoord2 camera_pos_projected = d_projection_transform_coord(projection,d_map_getpos(map),false);

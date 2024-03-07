@@ -25,6 +25,7 @@ struct DMap
     DListHandle layers;
     char gcs[PROJ_STRING_MAXLEN];
     char pcs[PROJ_STRING_MAXLEN];
+    DProjectionHandle projection;
     
 };
 
@@ -42,6 +43,8 @@ d_make_map(DMapInitDesc* init)
         strncpy(handle->pcs,init->pcs,PROJ_STRING_MAXLEN);
     }
 
+    handle->projection = d_create_projection(handle->gcs,handle->pcs);
+
 
     
     return handle;
@@ -52,6 +55,7 @@ d_make_map(DMapInitDesc* init)
 void 
 d_destroy_map(DMapHandle handle)
 {
+    d_destroy_projection(handle->projection);
     d_destroy_list(handle->layers);
     free(handle);
     
@@ -152,4 +156,10 @@ const char*
 d_map_getpcs(const DMapHandle map)
 {
     return map->pcs;
+}
+
+DProjectionHandle 
+d_map_getprojection(const DMapHandle map)
+{
+    return map->projection;
 }
