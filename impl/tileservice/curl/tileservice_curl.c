@@ -7,6 +7,8 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <linux/limits.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -22,9 +24,10 @@
 #include <drumlin/container/list.h>
 #include <drumlin/projection.h>
 
-//const char OSM_TILESERVICE_URL[] = "https://tile.openstreetmap.org/%d/%d/%d.png";
 const char CACHE_DIR[] = "/tmp/drumlin/";
+
 const char CACHE_LOCATION_URI[] = "/tmp/drumlin/%d/%d/%d.png";
+
 const char DRUMLIN_TILESERVICE_ENVNAME[] = "DRUMLIN_TILESERVICE_URI";
 
 #define DRUMLIN_CACHE_TILES 1
@@ -227,8 +230,11 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
     {
         for(x = x1; x <= x2; x++)
         {
+            
+
             char* cache_location_uri;
             int uri_size = create_request_uri(&cache_location_uri,CACHE_LOCATION_URI,z,x,y);
+
 
             AsyncOperation operation = {0};
 
@@ -263,11 +269,10 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
             {
                 D_LOG_WARNING("Could not get tile: %d/%d/%d",z,x,y);
                 continue;
-            }
-            
-            
+            }            
         }
     }
+    
     int running_handles;
 
     do
@@ -370,7 +375,7 @@ d_tileservce_render(DLayer* layer, DBBox view_box, int zoom, void* userdata)
             d_tilenum_to_latlng(tile->x, tile->y, zoom, &tile_latlng);
 
             
-            d_renderer_drawraster_geo((DLayerRasterGraphic*)tile,map,tile_latlng,(DBBox){0},projection);          
+            d_renderer_drawraster_pgeo((DLayerRasterGraphic*)tile,map,tile_latlng,projection);          
             
             free(tile->raster);
         }
@@ -480,8 +485,7 @@ save_tile_to_cache(const char* uri, int uri_size, TilePNGData* image)
         strncpy(tmp_uri,uri,(size_t)(next_dir - uri));
         if(access(tmp_uri,F_OK) != 0)
         {
-            D_LOG_INFO("%s",tmp_uri);
-
+           
             if(mkdir(tmp_uri,0777 ) < 0)
             {
                 D_LOG_WARNING("Could not make cache at %s: %s",tmp_uri, strerror(errno));

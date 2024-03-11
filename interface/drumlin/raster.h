@@ -1,0 +1,6 @@
+#ifndef _DRUMLIN_RASTER_H
+#define _DRUMLIN_RASTER_H
+
+
+
+#endif //_DRUMLIN_RASTER_H

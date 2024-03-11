@@ -97,6 +97,12 @@ d_latlng_sub(DLatLng a, DLatLng b)
     return latlng(a.lat - b.lat, a.lng - b.lng);
 }
 
+DCoord2 
+d_coord2_scale(DCoord2 a, double s)
+{
+    return coord2(a.x * s, a.y * s);
+}
+
 DLatLng 
 d_latlng_radians(DLatLng a)
 {

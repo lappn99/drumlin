@@ -3,36 +3,31 @@
 
 #include "layer.h"
 #include "image.h"
+#include "dataset.h"
 
-struct DRaster;
-
-
+struct DRasterLayer;
+typedef struct DRasterLayer* DRasterLayerHandle;
 
 typedef struct
 {
     char* name;
     char* attribution;
-    DImage* image;
-    DLatLng position;
-    DBBox extent;
+
 
 } DRasterLayerDesc;
 
-typedef struct
-{
-    DLayer base;
-    DImage* image;
-    DLatLng position;
-    DBBox extent;
 
-} DRasterLayer;
 
-DRasterLayer* d_make_rasterlayer(const DRasterLayerDesc*);
-void d_destroy_rasterlayer(DRasterLayer*);
+DRasterLayerHandle d_make_rasterlayer(const DRasterLayerDesc*);
+void d_destroy_rasterlayer(DRasterLayerHandle);
 void d_rasterlayer_render(struct DLayer*, DBBox, int, void*);
-DRasterLayer* d_rasterlayer_copy(const DRasterLayer*);
+DRasterLayerHandle d_rasterlayer_copy(const DRasterLayerHandle);
 
+void d_rasterlayer_setextent(DRasterLayerHandle, DBBox);
+DBBox d_rasterlayer_getextent(const DRasterLayerHandle);
 
+void d_rasterlayer_load_fromdataset(DRasterLayerHandle, const DDatasetHandle, const char*);
+void d_rasterlayer_load_fromimage(DRasterLayerHandle, const DImage*);
 
 
 

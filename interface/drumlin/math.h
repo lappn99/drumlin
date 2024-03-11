@@ -50,6 +50,8 @@ DLatLng d_latlng_add(DLatLng, DLatLng);
 DLatLng d_latlng_sub(DLatLng, DLatLng);
 DLatLng d_latlng_radians(DLatLng);
 
+DCoord2 d_coord2_scale(DCoord2, double);
+
 void d_tilenum_to_latlng(int, int, int, DLatLng*);
 void d_latlng_to_bbox(DLatLng, int, DBBox*);
 double d_resolution_at_latitude(double, int);

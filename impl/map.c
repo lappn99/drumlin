@@ -72,6 +72,16 @@ d_map_setview(DMapHandle handle, DLatLng coords, int zoom)
     {
         zoom = MAX_ZOOM;
     }
+
+    if(coords.lng > 180)
+    {
+        coords.lng = -180;
+    }
+    else if(coords.lng < -180)
+    {
+        coords.lng = 180;
+    }
+
     handle->view_position = coords;
     handle->zoom = zoom;
 }

@@ -12,7 +12,7 @@ typedef struct
     int height_px;
     int bands;
     float resolution;
-    unsigned char* raster;
+    char* raster;
 } DLayerRasterGraphic;
 
 typedef struct
