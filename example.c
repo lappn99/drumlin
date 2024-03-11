@@ -11,11 +11,9 @@ int main(int argc, char** argv)
         .title = "Drumlin example"
     });
 
-    DDatasetHandle skillissue_dataset = d_make_dataset();
-    d_dataset_load(skillissue_dataset,"./example_data/diagnosis-skill-issue.png", 0);
-
-    DDatasetHandle europe_dataset = d_make_dataset();
-    d_dataset_load(europe_dataset,"./example_data/europe_states.geojson", 0);
+   
+    DImage* skillissue_image = d_image_loadfromfile("./example_data/diagnosis-skill-issue.png");
+    
 
     DTileServiceLayer* tileservice = d_make_tileservice(&(DTileServiceLayerDesc){
         .name = "OSM Tile Service",
@@ -29,7 +27,8 @@ int main(int argc, char** argv)
         
     });
 
-    d_rasterlayer_load_fromdataset(skillissue_quebec,skillissue_dataset,NULL);
+
+    d_rasterlayer_load_fromimage(skillissue_quebec,skillissue_image);
     d_rasterlayer_setextent(skillissue_quebec,bbox(latlng(52, -72),latlng(50,-70)));
 
     DRasterLayerHandle skillissue_france = d_rasterlayer_copy(skillissue_quebec);
@@ -102,8 +101,7 @@ int main(int argc, char** argv)
             d_map_render(map);
         }   
     }
-    d_destroy_dataset(skillissue_dataset);
-    d_destroy_dataset(europe_dataset);
+    d_destroy_image(skillissue_image);
     
     d_destroy_rasterlayer(skillissue_quebec);
     d_destroy_rasterlayer(skillissue_france);

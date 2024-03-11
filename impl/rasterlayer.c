@@ -98,13 +98,21 @@ void d_rasterlayer_load_fromimage(DRasterLayerHandle handle, const DImage* image
 {
     if(handle->dataset == NULL)
     {
-        //GDALDriverH driver = GDALGetDriverByName("GTiff");
+        GDALDriverH driver = GDALGetDriverByName("GTiff");
         
-        const char* tmp_filename = get_tmpfile("png");
-        if(strcmp(tmp_filename,"") == 0)
+        const char* path = get_tmpfile("tiff");
+        handle->dataset = GDALCreate(driver,path,image->width,image->height,image->channels,GDT_Int8,NULL);
+
+        CPLErr error = GDALDatasetRasterIO(handle->dataset,GF_Write,0,0,
+            image->width,image->height,image->data,image->width,
+            image->height,GDT_Int8,image->channels,NULL,0,0,0);
+        
+        
+        if(error != CE_None)
         {
-            D_LOG_ERROR("mktemp(): %s",strerror(errno));
+            D_LOG_WARNING("GDALDatasetRasterIO()", NULL);
         }
+
 
     }
 }
@@ -156,7 +164,7 @@ get_tmpfile(const char* extension)
         return NULL;
     }
 
-    int path_size = snprintf(&path[0],PATH_MAX,"%s.%s",tmp_filename_template,extension);
+    int path_size = snprintf(&path[0],PATH_MAX,"%s",tmp_filename_template);
     if(path_size < 0)
     {
         D_LOG_ERROR("snprintf(): %s",strerror(errno));
