@@ -15,10 +15,12 @@ typedef enum
 
 void d_dataset_load(DDatasetHandle, const char*, DDatasetOptions);
 
+
 DDatasetHandle d_make_dataset(void);
 void d_destroy_dataset(DDatasetHandle);
 
 void* d_dataset_getunderlyinghandle(DDatasetHandle);
+void d_dataset_listlayers(DDatasetHandle);
 
 
 

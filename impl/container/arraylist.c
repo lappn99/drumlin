@@ -50,7 +50,7 @@ d_list_setcapacity(DListHandle handle,int capacity)
     handle->array = realloc(handle->array,handle->capacity * handle->element_size);
     if(handle->array == NULL)
     {
-        D_LOG_ERROR("realloc(): ", strerror(errno));
+        D_LOG_ERROR("Failed: realloc(): ", strerror(errno));
         return -1;
     }
     return capacity;

@@ -127,7 +127,10 @@ d_map_addlayer(DMapHandle map, DLayer* layer)
 {
     
     DLayer* result = *((DLayer**)d_list_append(map->layers,&layer));
-    D_LOG_INFO("Added layer: %s", result->metadata.name);
+    if(result == NULL)
+    {
+        D_LOG_ERROR("Error adding layer: %s", layer->metadata.name);
+    }
 }
 
 void 

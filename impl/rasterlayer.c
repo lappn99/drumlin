@@ -66,6 +66,7 @@ d_make_rasterlayer(const DRasterLayerDesc* desc)
     strncpy(raster_layer->base.metadata.name,desc->name,DLAYER_NAME_MAXLEN);
     raster_layer->base.render_graphic_func = d_rasterlayer_render;
     raster_layer->dataset = NULL;
+    
     return raster_layer;
 
 }

@@ -47,6 +47,19 @@ d_dataset_getunderlyinghandle(DDatasetHandle handle)
     return handle->dataset;
 }
 
+void 
+d_dataset_listlayers(DDatasetHandle handle)
+{
+    int num_layers = GDALDatasetGetLayerCount(handle->dataset);
+    int i = 0;
+    for(i = 0; i < num_layers; i++)
+    {
+        OGRLayerH layer = GDALDatasetGetLayer(handle->dataset,i);
+        const char* name = OGR_L_GetName(layer);
+        D_LOG_INFO("Layer: %s", name);
+    }
+}
+
 void
 d_destroy_dataset(DDatasetHandle handle)
 {

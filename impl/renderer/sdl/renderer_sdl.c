@@ -1,11 +1,14 @@
 #include <SDL2/SDL.h>
 
+#include <drumlin/geometry.h>
 #include <drumlin/renderer.h>
 #include <drumlin/app.h>
 #include <drumlin/logging.h>
 #include <drumlin/math.h>
+#include <drumlin/featurelayer.h>
 
 static SDL_Renderer* renderer;
+
 
 void
 d_init_renderer(void)
@@ -115,10 +118,52 @@ d_renderer_drawraster_egeo(const DLayerRasterGraphic* raster,
     );
 
     d_renderer_drawraster(raster,screen_coords.x, window_height - screen_coords.y, dimension_px.x, dimension_px.y);
+}
 
+void 
+d_renderer_drawvector_pgeo(const DLayerVectorGraphic* graphic, const DMapHandle map, const DProjectionHandle projection)
+{
+    SDL_SetRenderDrawColor(renderer,0,0,255,0);
+    DCoord2 camera_pos_projected = d_projection_transform_coord(projection,d_map_getpos(map),false);
+    int window_width, window_height;
+    d_app_getwindowsize(&window_width,&window_height);
+
+    DCoord2 screen_origin;
+    double resolution = d_resolution_at_latitude(0, d_map_getzoom(map));
+
+    screen_origin.x = camera_pos_projected.x - (window_width / 2) * (resolution);
+    screen_origin.y = camera_pos_projected.y - (window_height / 2) * (resolution);
+
+    
+    for(int i = 0; i < d_list_getsize(graphic->feature_list); i++)
+    {
+        DFeature* feature = d_list_get(graphic->feature_list,i);
+        if(feature->geom_type == DRUMLIN_GEOM_POINT)
+        {
+            DCoord2 projected_coord = d_projection_transform_coord(projection,feature->geometry.point_geom.position,false);
+            DCoord2 screen_coords = coord2(
+                (projected_coord.x - screen_origin.x) * (1/resolution), 
+                (projected_coord.y - screen_origin.y) * (1/resolution)
+            );
+            SDL_Rect rect;
+            rect.x = screen_coords.x;
+            rect.y = window_height - screen_coords.y;
+
+            rect.w = 10;
+            rect.h = 10;
+
+            SDL_RenderFillRect(renderer,&rect);
+            
+        }
+       
+    }
+    SDL_SetRenderDrawColor(renderer,0,0,0,0);
 
 
 }
+
+
+
 
 void 
 d_renderer_present(void)

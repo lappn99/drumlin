@@ -1,8 +1,9 @@
 #ifndef _DRUMLIN_LAYER_H
 #define _DRUMLIN_LAYER_H
 
-
 #include "math.h"
+#include "feature.h"
+#include "container/list.h"
 
 #define DLAYER_NAME_MAXLEN 64
 
@@ -17,6 +18,8 @@ typedef struct
 
 typedef struct
 {
+    DListHandle feature_list;
+
 
 } DLayerVectorGraphic;
 

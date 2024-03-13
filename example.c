@@ -1,9 +1,11 @@
 
 #include <drumlin/drumlin.h>
 #include <drumlin/providers.h>
+#include <drumlin/geometry.h>
 
 int main(int argc, char** argv)
 {
+
     drumlin_init();
     drumlin_start(&(DAppInitDesc){
         .width = 1280,
@@ -11,9 +13,15 @@ int main(int argc, char** argv)
         .title = "Drumlin example"
     });
 
-   
     DImage* skillissue_image = d_image_loadfromfile("./example_data/diagnosis-skill-issue.png");
-    
+    DDatasetHandle test_points_dataset = d_make_dataset();
+    DDatasetHandle europe_states_dataset = d_make_dataset();
+
+    d_dataset_load(test_points_dataset,"./example_data/test_data.geojson",0);
+    d_dataset_listlayers(test_points_dataset);
+
+    d_dataset_load(europe_states_dataset,"./example_data/europe_states.geojson",0);
+    d_dataset_listlayers(europe_states_dataset);
 
     DTileServiceLayer* tileservice = d_make_tileservice(&(DTileServiceLayerDesc){
         .name = "OSM Tile Service",
@@ -27,7 +35,19 @@ int main(int argc, char** argv)
         
     });
 
+    DFeatureLayerHandle test_points = d_make_featurelayer(&(DFeatureLayerDesc){
+        .name = "Test Points",
+        .attribution = "Nathan Lapp"
+    });
 
+    DFeatureLayerHandle europe_states = d_make_featurelayer(&(DFeatureLayerDesc){
+        .name = "Europe States",
+        .attribution = "Nathan Lapp"
+    });
+
+    d_featurelayer_load_fromdataset(test_points,test_points_dataset,NULL);
+    d_featurelayer_load_fromdataset(europe_states,europe_states_dataset,NULL);
+    
     d_rasterlayer_load_fromimage(skillissue_quebec,skillissue_image);
     d_rasterlayer_setextent(skillissue_quebec,bbox(latlng(52, -72),latlng(50,-70)));
 
@@ -38,7 +58,7 @@ int main(int argc, char** argv)
     DRasterLayerHandle skillissue_russia = d_rasterlayer_copy(skillissue_quebec);
     d_rasterlayer_setextent(skillissue_russia, bbox(latlng(55.755833, 37.617222), latlng(55.755833 - 5, 37.617222 + 5)));
 
-   
+
 
     DMapHandle map = d_make_map(&(DMapInitDesc){
         .position = latlng(44.301111, -78.333333),
@@ -47,13 +67,13 @@ int main(int argc, char** argv)
     });
 
     int x,y;
-    
-    D_LOG_INFO("Map resolution: %lf",d_map_resolution(map));
+
     d_map_addlayer(map,(DLayer*)tileservice);
     d_map_addlayer(map,(DLayer*)skillissue_quebec);
     d_map_addlayer(map,(DLayer*)skillissue_france);
     d_map_addlayer(map,(DLayer*)skillissue_russia);
-
+    d_map_addlayer(map,(DLayer*)test_points);
+    //d_map_addlayer(map,(DLayer*)europe_states);
     //d_map_addlayer(map,(DLayer*)hiking_overlay);
     d_map_render(map);
 
@@ -106,6 +126,8 @@ int main(int argc, char** argv)
     d_destroy_rasterlayer(skillissue_quebec);
     d_destroy_rasterlayer(skillissue_france);
     d_destroy_rasterlayer(skillissue_russia);
+    d_destroy_featurelayer(test_points);
+    d_destroy_featurelayer(europe_states);
     d_destroy_tileservice(tileservice);
 
 

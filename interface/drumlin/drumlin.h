@@ -12,7 +12,7 @@ const char* drumlin_tmpfolder(void);
 #include <drumlin/map.h>
 #include <drumlin/dataset.h>
 #include <drumlin/rasterlayer.h>
-#include <drumlin/feature.h>
+#include <drumlin/featurelayer.h>
 
 
 #endif //_DRUMLIN_H

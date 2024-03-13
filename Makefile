@@ -2,9 +2,9 @@
 .SUFFIXES: .c .o
 
 CC=gcc
-CCFLAGS=-c -Wall -Werror -fPIC -ggdb
+CCFLAGS=-c -Wall -fPIC -ggdb
 LDFLAGS=-shared
-MODULES=drumlin map tile tileservice app renderer math list projection rasterlayer image feature dataset
+MODULES=drumlin map tile tileservice app renderer math list projection rasterlayer image featurelayer dataset
 
 SRCDIR=./impl
 OBJDIR=./obj

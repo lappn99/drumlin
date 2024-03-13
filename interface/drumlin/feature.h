@@ -1,14 +1,29 @@
-#ifndef _DRUMLING_FEATURE_H
-#define _DRUMLING_FEATURE_H
+#ifndef _DRUMLIN_FEATURE_H
+#define _DRUMLIN_FEATURE_H
 
-struct DFeature;
+#include "geometry.h"
 
-typedef struct DFeature* DFeatureHandle;
+typedef union 
+{
+    DPoint point_geom;
+    DLine line_geom;
+    
+} DFeatureGeometry;
 
-DFeatureHandle d_make_feature(void);
-void d_destroy_feature(DFeatureHandle);
+typedef enum
+{
+    DRUMLIN_GEOM_POINT,
+    DRUMLIN_GEOM_LINE
 
-void d_feature_loaddata(DFeatureHandle, const char*);
+} DFeatureGeometryType;
 
+typedef struct 
+{
+    DFeatureGeometry geometry;
+    DFeatureGeometryType geom_type;
+    
+        
 
-#endif //_DRUMLING_FEATURE_H
+} DFeature;
+
+#endif //_DRUMLIN_FEATURE_H
