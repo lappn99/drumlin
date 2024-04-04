@@ -23,15 +23,7 @@ int main(int argc, char** argv)
 
     d_dataset_load(europe_states_dataset,"./example_data/hungary_lines.geojson",0);
     d_dataset_listlayers(europe_states_dataset);
-
-    DGeometryHandle test_line = d_make_geometry();
-
-    d_geometry_setcoords(test_line, (DCoord2[]){coord2(0.0,0.0), coord2(1.0,0.0)}, 2);
-
-    DLine* line;
-
-    d_geometry_getline(test_line, &line, 0);
-
+    
     DTileServiceLayer* tileservice = d_make_tileservice(&(DTileServiceLayerDesc){
         .name = "OSM Tile Service",
         .uri_fmt = PROVIDER_OPENSTREETMAP,
