@@ -123,7 +123,7 @@ d_renderer_drawraster_egeo(const DLayerRasterGraphic* raster,
 void 
 d_renderer_drawvector_pgeo(const DLayerVectorGraphic* graphic, const DMapHandle map, const DProjectionHandle projection)
 {
-    SDL_SetRenderDrawColor(renderer,0,0,255,0);
+    SDL_SetRenderDrawColor(renderer,255,0,0,0);
     DCoord2 camera_pos_projected = d_projection_transform_coord(projection,d_map_getpos(map),false);
     int window_width, window_height;
     d_app_getwindowsize(&window_width,&window_height);
@@ -134,6 +134,8 @@ d_renderer_drawvector_pgeo(const DLayerVectorGraphic* graphic, const DMapHandle 
     screen_origin.x = camera_pos_projected.x - (window_width / 2) * (resolution);
     screen_origin.y = camera_pos_projected.y - (window_height / 2) * (resolution);
 
+
+
     
     for(int i = 0; i < d_list_getsize(graphic->feature_list); i++)
     {
@@ -141,10 +143,12 @@ d_renderer_drawvector_pgeo(const DLayerVectorGraphic* graphic, const DMapHandle 
         if(feature->geom_type == DRUMLIN_GEOM_POINT)
         {
             DCoord2 projected_coord = d_projection_transform_coord(projection,feature->geometry.point_geom.position,false);
+
             DCoord2 screen_coords = coord2(
                 (projected_coord.x - screen_origin.x) * (1/resolution), 
                 (projected_coord.y - screen_origin.y) * (1/resolution)
             );
+
             SDL_Rect rect;
             rect.x = screen_coords.x;
             rect.y = window_height - screen_coords.y;
@@ -154,6 +158,36 @@ d_renderer_drawvector_pgeo(const DLayerVectorGraphic* graphic, const DMapHandle 
 
             SDL_RenderFillRect(renderer,&rect);
             
+        }
+        
+        else if(feature->geom_type == DRUMLIN_GEOM_LINESTRING)
+        {
+            DFeature* feature = d_list_get(graphic->feature_list,i);
+            DLineString linestring = feature->geometry.linestring_geom;
+
+            
+
+            for(int l = 0; l < d_list_getsize(linestring.linestrings); l++)
+            {
+                DLine* line = d_list_get(linestring.linestrings,l);
+
+                DCoord2 projected_coord_1 = d_projection_transform_coord(projection,line->a,false);
+                DCoord2 screen_coords_1 = coord2(
+                    (projected_coord_1.x - screen_origin.x) * (1/resolution), 
+                    (projected_coord_1.y - screen_origin.y) * (1/resolution)
+                );
+
+                DCoord2 projected_coord_2 = d_projection_transform_coord(projection,line->b,false);
+                DCoord2 screen_coords_2 = coord2(
+                    (projected_coord_2.x - screen_origin.x) * (1/resolution), 
+                    (projected_coord_2.y - screen_origin.y) * (1/resolution)
+                );
+                
+                SDL_RenderDrawLine(renderer,screen_coords_1.x, window_height - screen_coords_1.y, 
+                    screen_coords_2.x, window_height - screen_coords_2.y);
+
+            }
+
         }
        
     }

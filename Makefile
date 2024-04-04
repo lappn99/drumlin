@@ -4,7 +4,7 @@
 CC=gcc
 CCFLAGS=-c -Wall -fPIC -ggdb
 LDFLAGS=-shared
-MODULES=drumlin map tile tileservice app renderer math list projection rasterlayer image featurelayer dataset
+MODULES=drumlin map tile tileservice app renderer math list projection rasterlayer image featurelayer dataset geometry
 
 SRCDIR=./impl
 OBJDIR=./obj

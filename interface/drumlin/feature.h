@@ -3,27 +3,27 @@
 
 #include "geometry.h"
 
-typedef union 
+typedef union DFeatureGeometry
 {
     DPoint point_geom;
-    DLine line_geom;
+    DLineString linestring_geom;
     
 } DFeatureGeometry;
 
 typedef enum
 {
     DRUMLIN_GEOM_POINT,
-    DRUMLIN_GEOM_LINE
+    DRUMLIN_GEOM_LINESTRING
 
 } DFeatureGeometryType;
 
-typedef struct 
+typedef struct DFeature
 {
     DFeatureGeometry geometry;
     DFeatureGeometryType geom_type;
-    
-        
 
 } DFeature;
+
+
 
 #endif //_DRUMLIN_FEATURE_H

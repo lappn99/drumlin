@@ -1,6 +1,8 @@
 #ifndef _DRUMLIN_GEOMETRY_H
 #define _DRUMLIN_GEOMETRY_H
 #include <drumlin/math.h>
+#include <drumlin/container/list.h>
+#include <stdbool.h>
 
 typedef struct 
 {
@@ -11,14 +13,24 @@ typedef struct
 {
     union
     {
-        DLatLng a;
-        DLatLng b;
+        struct
+        {
+            DCoord2 a;
+            DCoord2 b;
+        } ;
+        double raw[4];
     };
-    DLatLng raw[2];
+    
 } DLine;
+
+typedef struct
+{
+    DListHandle linestrings;
+} DLineString;
 
 #define point(POSITION) ((DPoint){.position = POSITION})
 #define line(A, B) ((DLine){.a = A, .b = B})
 
 
-#endif //_DRUMLIN_GEOMETRY_H
+
+#endif //_DRUMLIN_GEOMETRY_H 

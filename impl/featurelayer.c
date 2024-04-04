@@ -1,3 +1,5 @@
+#include <linux/limits.h>
+
 #include <gdal.h>
 #include <ogr_api.h>
 #include <ogr_core.h>
@@ -10,11 +12,13 @@ struct DFeatureLayer
 {
     DLayer base;   
     OGRLayerH ogrlayer;
+    DLayerVectorGraphic graphic;
 } ;
 
 static void d_featurelayer_render(struct DLayer* , DBBox , int , void* );
-static void multilinestring_to_vectorgraphic(OGRFeatureH,DLayerVectorGraphic*);
-static void point_to_vectorgraphic(OGRFeatureH, DLayerVectorGraphic*);
+static void linestring_to_feature(OGRGeometryH,DFeature*);
+static void point_to_feature(OGRGeometryH, DFeature*);
+static const char* get_tmpfile(const char*);
 
 void 
 d_featurelayer_load_fromdataset(DFeatureLayerHandle handle, DDatasetHandle src_dataset, const char* layer_name)
@@ -31,91 +35,130 @@ d_featurelayer_load_fromdataset(DFeatureLayerHandle handle, DDatasetHandle src_d
 
 }
 
+void
+d_featurelayer_load_fromfeature(DFeatureLayerHandle handle, DFeature* feature, const char* layer_name)
+{
+    GDALDriverH shp_driver = GDALGetDriverByName("ESRI Shapefile");
+    const char* path = get_tmpfile("shp");
+    GDALDatasetH dataset = GDALCreate(shp_driver,path,0 ,0 ,0, GDT_Unknown, NULL);
+    if(dataset == NULL)
+    {
+        D_LOG_ERROR("Error creating dataset for geometry layer %s", layer_name);
+        return;
+    }
+    OGRLayerH layer = NULL;
+    OGRwkbGeometryType ogr_geom_type;
+    switch (feature->geom_type)
+    {
+    case DRUMLIN_GEOM_POINT:
+        ogr_geom_type = wkbPoint;
+        break;
+    case DRUMLIN_GEOM_LINESTRING:
+        ogr_geom_type = wkbLineString;
+    
+    default:
+        break;
+    }
+    layer = GDALDatasetCreateLayer(dataset, layer_name, NULL, ogr_geom_type, NULL);
+
+    if(layer == NULL)
+    {
+        D_LOG_ERROR("Could not create layer: %s", layer_name);
+    }
+
+    OGRFeatureH ogr_feature = OGR_F_Create(OGR_L_GetLayerDefn(layer));
+    OGRGeometryH ogr_geom = OGR_G_CreateGeometry(ogr_geom_type);
+
+    switch (feature->geom_type)
+    {
+    case DRUMLIN_GEOM_POINT:
+        DPoint point = feature->geometry.point_geom;
+        OGR_G_SetPoint_2D(ogr_geom,0, point.position.x, point.position.y);
+        break;
+
+    
+    default:
+        break;
+    }
+
+    OGR_F_SetGeometry(ogr_feature,ogr_geom);
+    if(OGR_L_CreateFeature(layer,ogr_feature) != OGRERR_NONE)
+    {
+        D_LOG_ERROR("Could not create feature for layer %s", layer_name);
+        return;
+    }
+    OGR_F_Destroy(ogr_feature);
+    handle->ogrlayer = layer;
+
+    
+}
 
 static void 
 d_featurelayer_render(struct DLayer* layer, DBBox view_box, int zoom, void* userdata)
 {
     DFeatureLayerHandle feature_layer = (DFeatureLayerHandle)layer;
     DMapHandle map = (DMapHandle)userdata;
-    
-
-    
 
     int num_features = OGR_L_GetFeatureCount(feature_layer->ogrlayer, 1);
     int i = 0;
+    DLayerVectorGraphic graphic;
+    graphic.feature_list = d_make_list(sizeof(DFeature),5);
     for(i = 0; i < num_features; i++)
     {
-        DLayerVectorGraphic graphic;
+       
         
-        OGRFeatureH feature = OGR_L_GetFeature(feature_layer->ogrlayer,i);
-        OGRFeatureDefnH feature_defintion = OGR_F_GetDefnRef(feature);
-        OGRwkbGeometryType geom_type =  OGR_FD_GetGeomType(feature_defintion);
-        graphic.feature_list = d_make_list(sizeof(DFeature),5);
-        switch(geom_type)
+        OGRFeatureH ogr_feature = OGR_L_GetFeature(feature_layer->ogrlayer,i);
+        OGRFeatureDefnH feature_defintion = OGR_F_GetDefnRef(ogr_feature);
+        OGRwkbGeometryType ogr_geom_type =  OGR_FD_GetGeomType(feature_defintion);
+        OGRGeometryH ogr_geom = OGR_F_GetGeometryRef(ogr_feature);
+        DFeature feature;
+        
+        switch(ogr_geom_type)
         {
-        case wkbMultiLineString :
-            multilinestring_to_vectorgraphic(feature,&graphic);
+        case wkbPoint :
+            
+            point_to_feature(ogr_geom,&feature);
+            d_list_append(graphic.feature_list,&feature);
             break;
-        case wkbPoint:
-            point_to_vectorgraphic(feature,&graphic);
         
+        case wkbMultiLineString:
+            int num_linestrings = OGR_G_GetGeometryCount(ogr_geom);
+            for(int i = 0; i < num_linestrings; i++)
+            {
+                OGRGeometryH ogr_linestring = OGR_G_GetGeometryRef(ogr_geom,i);
+                linestring_to_feature(ogr_linestring,&feature);
+                d_list_append(graphic.feature_list,&feature);
+            }
+
+            break;
+        case wkbLineString:
+           
+            linestring_to_feature(ogr_geom,&feature);
+            d_list_append(graphic.feature_list,&feature);
+            break;
         default:
             break;
         }
-
-        d_renderer_drawvector_pgeo(&graphic,map,d_map_getprojection(map));
-
-        d_destroy_list(graphic.feature_list);
-
-    }
-}
-
-static void
-multilinestring_to_vectorgraphic(OGRFeatureH feature, DLayerVectorGraphic* graphic)
-{
-
-    
-    OGRGeometryH multiline_geom =  OGR_F_GetGeometryRef(feature);
-    int num_geom = OGR_G_GetGeometryCount(multiline_geom);
-    
-    
-
-    for(int g = 0; g < num_geom; g++)
-    {
-        OGRGeometryH ogr_geometry = OGR_G_GetGeometryRef(multiline_geom,g);
-
-        int num_points = OGR_G_GetPointCount(ogr_geometry);
-
         
 
-        for(int p = 1; p < num_points; p++)
-        {
-            double z;
-            DFeature feature;
-            feature.geom_type = DRUMLIN_GEOM_LINE;
-            OGR_G_GetPoint(ogr_geometry,p - 1,&feature.geometry.line_geom.b.x,&feature.geometry.line_geom.b.y,&z);
-            OGR_G_GetPoint(ogr_geometry,p,&feature.geometry.line_geom.a.x,&feature.geometry.line_geom.a.y,&z);
-            
-            
-            d_list_append(graphic->feature_list,&feature);
-            
-        }
 
     }
-    
+    d_renderer_drawvector_pgeo(&graphic,map,d_map_getprojection(map));
 
-
+    d_destroy_list(graphic.feature_list);
 }
 
+
+
 static void 
-point_to_vectorgraphic(OGRFeatureH ogr_feature, DLayerVectorGraphic* graphic)
+point_to_feature(OGRGeometryH ogr_geom, DFeature* out_feature)
 {
-    OGRGeometryH ogr_geom = OGR_F_GetGeometryRef(ogr_feature);
     if(OGR_G_GetGeometryType(ogr_geom) != wkbPoint)
     {
         D_LOG_WARNING("Wrong type of geometry",NULL);
         return;
     }
+
     double z;
     DFeature feature;
     DFeatureGeometry geometry;
@@ -125,8 +168,39 @@ point_to_vectorgraphic(OGRFeatureH ogr_feature, DLayerVectorGraphic* graphic)
     feature.geometry = geometry;
     feature.geom_type = DRUMLIN_GEOM_POINT;
 
-    d_list_append(graphic->feature_list,&feature);
+    memcpy(out_feature,&feature,sizeof(DFeature));
     
+
+}
+
+
+static void 
+linestring_to_feature(OGRGeometryH ogr_geom,DFeature* out_feature)
+{
+    if(OGR_G_GetGeometryType(ogr_geom) != wkbLineString)
+    {
+        D_LOG_WARNING("Wrong type of geometry",NULL);
+        return;
+    }
+
+    int num_points = OGR_G_GetPointCount(ogr_geom);
+    out_feature->geom_type = DRUMLIN_GEOM_LINESTRING;
+    out_feature->geometry.linestring_geom.linestrings = d_make_list(sizeof(DLine),num_points/2);
+    
+    for(int i = 0; i < num_points - 1; i ++)
+    {
+        DPoint a;
+        DPoint b;
+        
+        OGR_G_GetPoint(ogr_geom,i,&a.position.x, &a.position.y,NULL);
+        OGR_G_GetPoint(ogr_geom,i+1,&b.position.x,&b.position.y,NULL);
+
+        DLine line = line(a.position,b.position);
+
+        d_list_append(out_feature->geometry.linestring_geom.linestrings,&line);
+    }
+
+
 
 }
 
@@ -151,3 +225,33 @@ d_destroy_featurelayer(const DFeatureLayerHandle handle)
     free(handle);
 }
 
+static const char* 
+get_tmpfile(const char* extension)
+{
+    static char path[PATH_MAX] = {0};
+
+    const char* tmp_folder = drumlin_tmpfolder();
+    char tmp_filename_template[PATH_MAX];
+    memset(tmp_filename_template,0,PATH_MAX);
+    snprintf(&tmp_filename_template[0],PATH_MAX,"%s/XXXXXX",tmp_folder);
+
+    int tmp_file = mkstemp(&tmp_filename_template[0]);
+    
+    if(tmp_file < 0)
+    {
+        D_LOG_ERROR("mktemp(): %s",strerror(errno));
+        return NULL;
+    }
+
+    int path_size = snprintf(&path[0],PATH_MAX,"%s.%s",tmp_filename_template, extension);
+    if(path_size < 0)
+    {
+        D_LOG_ERROR("snprintf(): %s",strerror(errno));
+        close(tmp_file);
+        return NULL;
+    }
+    close(tmp_file);
+
+    return path;
+
+}

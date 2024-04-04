@@ -15,6 +15,9 @@ typedef struct
     DLatLng position;
     int zoom;
     const char* pcs;
+
+    
+
 } DMapInitDesc;
 
 DMapHandle d_make_map(DMapInitDesc*);

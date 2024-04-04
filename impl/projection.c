@@ -15,6 +15,7 @@ DCoord2
 d_projection_transform_coord(DProjectionHandle handle,DCoord2 src_coord, bool inverse)
 {
     enum PJ_DIRECTION direction = PJ_FWD;
+
     if(inverse)
     {
         direction = PJ_INV;
@@ -36,17 +37,17 @@ d_projection_transform_bbox(DProjectionHandle handle, DBBox src_bbox, bool inver
     dest_bbox.max = d_projection_transform_coord(handle, src_bbox.max, inverse);
 
     return dest_bbox;
-
-
 }
 
 
 DProjectionHandle 
 d_create_projection(const char* src, const char* dst)
 {
+
     DProjectionHandle handle = malloc(sizeof(struct DProjection));
     handle->context = proj_context_create();
     handle->projection = proj_create_crs_to_crs(handle->context,src,dst,NULL);
+
     if(handle->projection == NULL)
     {
         D_LOG_WARNING("Could not create projection object for projection: %s to %d", src, dst);

@@ -26,12 +26,10 @@ d_rasterlayer_render(struct DLayer* layer, DBBox viewbox, int zoom, void* userda
     GDALDatasetH dataset = raster_layer->dataset;
 
     DLayerRasterGraphic graphic;
+    
     graphic.bands = GDALGetRasterCount(dataset);
     graphic.width_px = GDALGetRasterXSize(dataset);
     graphic.height_px = GDALGetRasterYSize(dataset);
-
-    
-
     graphic.raster = malloc(sizeof(unsigned char) * ((graphic.width_px * graphic.height_px) * graphic.bands));
     
     CPLErr error = GDALDatasetRasterIO(dataset,GF_Read,0,0,graphic.width_px,graphic.height_px,
