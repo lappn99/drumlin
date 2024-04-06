@@ -15,15 +15,10 @@ int main(int argc, char** argv)
     });
 
     DImage* skillissue_image = d_image_loadfromfile("./example_data/diagnosis-skill-issue.png");
-    DDatasetHandle test_points_dataset = d_make_dataset();
-    DDatasetHandle europe_states_dataset = d_make_dataset();
+    DDatasetHandle ptbo_census_tracts = d_make_dataset();
 
-    d_dataset_load(test_points_dataset,"./example_data/test_data.geojson",0);
-    d_dataset_listlayers(test_points_dataset);
+    d_dataset_load(ptbo_census_tracts,"./example_data/ptbo.geojson",0);
 
-    d_dataset_load(europe_states_dataset,"./example_data/hungary_lines.geojson",0);
-    d_dataset_listlayers(europe_states_dataset);
-    
     DTileServiceLayer* tileservice = d_make_tileservice(&(DTileServiceLayerDesc){
         .name = "OSM Tile Service",
         .uri_fmt = PROVIDER_OPENSTREETMAP,
@@ -35,29 +30,11 @@ int main(int argc, char** argv)
         .attribution = "Nathan Lapp",
     });
 
-    DFeatureLayerHandle test_points = d_make_featurelayer(&(DFeatureLayerDesc){
-        .name = "Test Points",
-        .attribution = "Nathan Lapp"
+    DFeatureLayerHandle ptbo_layer = d_make_featurelayer(&(DFeatureLayerDesc){
+        .name = "Peterborough Census Divisions",
+        .attribution = "Town of Peterborough"
     });
 
-    DFeatureLayerHandle europe_states = d_make_featurelayer(&(DFeatureLayerDesc){
-        .name = "Europe States",
-        .attribution = "Nathan Lapp"
-    });
-
-    DFeatureLayerHandle test_layer = d_make_featurelayer(&(DFeatureLayerDesc){
-        .name = "Test",
-        .attribution = "Nathan Lapp"
-    });
-    
-
-    d_featurelayer_load_fromdataset(test_points,test_points_dataset,NULL);
-    d_featurelayer_load_fromdataset(europe_states,europe_states_dataset,NULL);
-    d_featurelayer_load_fromfeature(test_layer,&(DFeature){
-        .geom_type = DRUMLIN_GEOM_POINT,
-        .geometry.point_geom = {.position = latlng(0,0)}
-    }, "TestLayer");
-    
     d_rasterlayer_load_fromimage(skillissue_quebec,skillissue_image);
     d_rasterlayer_setextent(skillissue_quebec,bbox(latlng(52, -72),latlng(50,-70)));
 
@@ -67,6 +44,7 @@ int main(int argc, char** argv)
     DRasterLayerHandle skillissue_russia = d_rasterlayer_copy(skillissue_quebec);
     d_rasterlayer_setextent(skillissue_russia, bbox(latlng(55.755833, 37.617222), latlng(55.755833 - 5, 37.617222 + 5)));
 
+    d_featurelayer_load_fromdataset(ptbo_layer, ptbo_census_tracts, NULL);
     
     
     DMapHandle map = d_make_map(&(DMapInitDesc){
@@ -80,9 +58,7 @@ int main(int argc, char** argv)
     d_map_addlayer(map,(DLayer*)skillissue_quebec);
     d_map_addlayer(map,(DLayer*)skillissue_france);
     d_map_addlayer(map,(DLayer*)skillissue_russia);
-    d_map_addlayer(map,(DLayer*)test_points);
-    d_map_addlayer(map,(DLayer*)europe_states);
-    d_map_addlayer(map,(DLayer*)test_layer);
+    d_map_addlayer(map,(DLayer*)ptbo_layer);
     //d_map_addlayer(map,(DLayer*)hiking_overlay);
     d_map_render(map);
 
@@ -136,8 +112,6 @@ int main(int argc, char** argv)
     d_destroy_rasterlayer(skillissue_quebec);
     d_destroy_rasterlayer(skillissue_france);
     d_destroy_rasterlayer(skillissue_russia);
-    d_destroy_featurelayer(test_points);
-    d_destroy_featurelayer(europe_states);
     d_destroy_tileservice(tileservice);
 
     d_destroy_map(map);

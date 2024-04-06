@@ -3,6 +3,7 @@
 #include <gdal.h>
 #include <ogr_api.h>
 #include <ogr_core.h>
+#include <ogr_srs_api.h>
 
 #include <drumlin/featurelayer.h>
 #include <drumlin/drumlin.h>
@@ -12,7 +13,7 @@ struct DFeatureLayer
 {
     DLayer base;   
     OGRLayerH ogrlayer;
-    DLayerVectorGraphic graphic;
+    DLayerVectorGraphic* graphic;
 } ;
 
 static void d_featurelayer_render(struct DLayer* , DBBox , int , void* );
@@ -25,6 +26,8 @@ d_featurelayer_load_fromdataset(DFeatureLayerHandle handle, DDatasetHandle src_d
 {
     GDALDatasetH dataset = d_dataset_getunderlyinghandle(src_dataset);
     
+    
+
     if(layer_name == NULL)
     {
         handle->ogrlayer = GDALDatasetGetLayer(dataset,0);
@@ -32,6 +35,10 @@ d_featurelayer_load_fromdataset(DFeatureLayerHandle handle, DDatasetHandle src_d
     }
 
     handle->ogrlayer = GDALDatasetGetLayerByName(dataset, layer_name);
+    OGRSpatialReferenceH spatial_ref = OGR_L_GetSpatialRef(handle->ogrlayer);
+
+    D_LOG_INFO("%d", OSRIsProjected(spatial_ref));
+
 
 }
 
@@ -46,8 +53,10 @@ d_featurelayer_load_fromfeature(DFeatureLayerHandle handle, DFeature* feature, c
         D_LOG_ERROR("Error creating dataset for geometry layer %s", layer_name);
         return;
     }
+
     OGRLayerH layer = NULL;
     OGRwkbGeometryType ogr_geom_type;
+
     switch (feature->geom_type)
     {
     case DRUMLIN_GEOM_POINT:
@@ -59,6 +68,7 @@ d_featurelayer_load_fromfeature(DFeatureLayerHandle handle, DFeature* feature, c
     default:
         break;
     }
+    
     layer = GDALDatasetCreateLayer(dataset, layer_name, NULL, ogr_geom_type, NULL);
 
     if(layer == NULL)
@@ -75,10 +85,9 @@ d_featurelayer_load_fromfeature(DFeatureLayerHandle handle, DFeature* feature, c
         DPoint point = feature->geometry.point_geom;
         OGR_G_SetPoint_2D(ogr_geom,0, point.position.x, point.position.y);
         break;
-
-    
     default:
         break;
+        
     }
 
     OGR_F_SetGeometry(ogr_feature,ogr_geom);
@@ -99,10 +108,20 @@ d_featurelayer_render(struct DLayer* layer, DBBox view_box, int zoom, void* user
     DFeatureLayerHandle feature_layer = (DFeatureLayerHandle)layer;
     DMapHandle map = (DMapHandle)userdata;
 
+    if(feature_layer->graphic!= NULL)
+    {
+        d_renderer_drawvector_pgeo(feature_layer->graphic,map,d_map_getprojection(map));
+        return;
+    }
+
+
     int num_features = OGR_L_GetFeatureCount(feature_layer->ogrlayer, 1);
     int i = 0;
-    DLayerVectorGraphic graphic;
-    graphic.feature_list = d_make_list(sizeof(DFeature),5);
+
+    feature_layer->graphic = malloc(sizeof(DLayerVectorGraphic));
+    DLayerVectorGraphic* graphic =feature_layer->graphic;
+
+    graphic->feature_list = d_make_list(sizeof(DFeature),5);
     for(i = 0; i < num_features; i++)
     {
        
@@ -113,39 +132,38 @@ d_featurelayer_render(struct DLayer* layer, DBBox view_box, int zoom, void* user
         OGRGeometryH ogr_geom = OGR_F_GetGeometryRef(ogr_feature);
         DFeature feature;
         
+        
         switch(ogr_geom_type)
         {
         case wkbPoint :
             
             point_to_feature(ogr_geom,&feature);
-            d_list_append(graphic.feature_list,&feature);
+            d_list_append(graphic->feature_list,&feature);
             break;
         
         case wkbMultiLineString:
+
             int num_linestrings = OGR_G_GetGeometryCount(ogr_geom);
             for(int i = 0; i < num_linestrings; i++)
             {
                 OGRGeometryH ogr_linestring = OGR_G_GetGeometryRef(ogr_geom,i);
                 linestring_to_feature(ogr_linestring,&feature);
-                d_list_append(graphic.feature_list,&feature);
+                d_list_append(graphic->feature_list,&feature);
             }
 
             break;
         case wkbLineString:
            
             linestring_to_feature(ogr_geom,&feature);
-            d_list_append(graphic.feature_list,&feature);
+            d_list_append(graphic->feature_list,&feature);
+
             break;
         default:
             break;
         }
-        
-
-
     }
-    d_renderer_drawvector_pgeo(&graphic,map,d_map_getprojection(map));
 
-    d_destroy_list(graphic.feature_list);
+    d_featurelayer_render(layer, view_box, zoom, userdata);
 }
 
 
@@ -187,7 +205,7 @@ linestring_to_feature(OGRGeometryH ogr_geom,DFeature* out_feature)
     out_feature->geom_type = DRUMLIN_GEOM_LINESTRING;
     out_feature->geometry.linestring_geom.linestrings = d_make_list(sizeof(DLine),num_points/2);
     
-    for(int i = 0; i < num_points - 1; i ++)
+    for(int i = 0; i < num_points - 1; i++)
     {
         DPoint a;
         DPoint b;
