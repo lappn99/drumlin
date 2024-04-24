@@ -21,7 +21,7 @@ static void create_key_lut(void);
 int 
 drumlin_start(DAppInitDesc* desc)
 {
-    if(SDL_Init(SDL_INIT_VIDEO) < 0)
+    if(SDL_Init(SDL_INIT_VIDEO ) < 0)
     {
         D_LOG_ERROR("Could not init SDL", NULL);
         return 0;

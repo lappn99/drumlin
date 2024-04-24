@@ -14,7 +14,7 @@ void
 d_init_renderer(void)
 {
     SDL_Window* window = (SDL_Window*)d_app_getwindowhandle();
-    renderer = SDL_CreateRenderer(window,-1,0);
+    renderer = SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED);
     if(renderer == NULL)
     {
         D_LOG_ERROR("Could not create SDL Renderer: %s", SDL_GetError());
@@ -183,7 +183,7 @@ d_renderer_drawvector_pgeo(const DLayerVectorGraphic* graphic, const DMapHandle 
                     (projected_coord_2.y - screen_origin.y) * (1/resolution)
                 );
                 
-                SDL_RenderDrawLine(renderer,screen_coords_1.x, window_height - screen_coords_1.y, 
+                SDL_RenderDrawLineF(renderer,screen_coords_1.x, window_height - screen_coords_1.y, 
                     screen_coords_2.x, window_height - screen_coords_2.y);
 
             }
