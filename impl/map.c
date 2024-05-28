@@ -136,6 +136,7 @@ d_map_addlayer(DMapHandle map, DLayer* layer)
 void 
 d_map_slide(DMapHandle map, int zoom, DCoord2 pixels, double speed)
 {
+    
     double resolution = d_resolution_at_latitude(0,map->zoom);
 
     float horizontal_dpi, vertical_dpi;

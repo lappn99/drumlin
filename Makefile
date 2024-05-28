@@ -62,12 +62,12 @@ clean:
 	rm -f libdrumlin.so
 	rm -f ./example
 
-uninstall:
+uninstall: clean
 	rm -f /usr/lib/libdrumlin.so
 	rm -rf /usr/include/drumlin
 
 
-example: install example.c 
+example: example.c 
 	${CC} ${EXAMPLE_LIBS} ${INCLUDE} -o $@ example.c -ggdb
 
 

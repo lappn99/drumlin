@@ -81,7 +81,7 @@ d_featurelayer_load_fromfeature(DFeatureLayerHandle handle, DFeature* feature, c
 
     switch (feature->geom_type)
     {
-    case DRUMLIN_GEOM_POINT:
+    case DRUMLIN_GEOM_POINT: ;
         DPoint point = feature->geometry.point_geom;
         OGR_G_SetPoint_2D(ogr_geom,0, point.position.x, point.position.y);
         break;
@@ -141,7 +141,7 @@ d_featurelayer_render(struct DLayer* layer, DBBox view_box, int zoom, void* user
             d_list_append(graphic->feature_list,&feature);
             break;
         
-        case wkbMultiLineString:
+        case wkbMultiLineString: ;
 
             int num_linestrings = OGR_G_GetGeometryCount(ogr_geom);
             for(int i = 0; i < num_linestrings; i++)
