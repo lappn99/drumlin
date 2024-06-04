@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <gdal.h>
+#include <gdal/gdal.h>
 
 
 #include <drumlin/dataset.h>

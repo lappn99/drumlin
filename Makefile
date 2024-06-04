@@ -3,7 +3,7 @@
 
 CC=gcc
 CCFLAGS=-c -Wall -fPIC -ggdb
-LDFLAGS=-shared
+LDFLAGS=-shared -lSDL2 -lm -lcurl -lproj -lgdal 
 MODULES=drumlin map tile tileservice app renderer math list projection rasterlayer image featurelayer dataset
 
 SRCDIR=./impl
@@ -18,7 +18,7 @@ TILESERVICE_IMPL=./impl/tileservice/curl/tileservice_curl.c
 APP_IMPL=./impl/app/sdl/app_sdl.c
 RENDERER_IMPL=./impl/renderer/sdl/renderer_sdl.c
 LIST_IMPL=./impl/container/arraylist.c
-EXAMPLE_LIBS=-ldrumlin -lSDL2 -lm -lcurl -lproj -lgdal
+EXAMPLE_LIBS= -ldrumlin   -lSDL2 -lm -lcurl -lproj -lgdal 
 
 
 build: libdrumlin.so
@@ -53,8 +53,8 @@ libdrumlin.so : ${OBJS}
 	${CC} ${LDFLAGS} -o $@ $^ 
 
 install: build
-	cp ./libdrumlin.so /usr/lib
-	cp -r ${INCLUDE_DIR}/. /usr/include/
+	install ./libdrumlin.so /usr/lib/
+	cp -r ${addsuffix /*,${INCLUDE_DIR}} /usr/include/
 	ldconfig
 
 clean:
@@ -62,13 +62,13 @@ clean:
 	rm -f libdrumlin.so
 	rm -f ./example
 
-uninstall: clean
+uninstall:
 	rm -f /usr/lib/libdrumlin.so
 	rm -rf /usr/include/drumlin
 
 
 example: example.c 
-	${CC} ${EXAMPLE_LIBS} ${INCLUDE} -o $@ example.c -ggdb
+	${CC} example.c ${INCLUDE} ${EXAMPLE_LIBS} -o $@  -ggdb
 
 
 

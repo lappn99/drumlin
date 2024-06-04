@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <linux/limits.h>
+#include <ftw.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -21,7 +22,7 @@
 #include <drumlin/container/list.h>
 #include <drumlin/projection.h>
 
-const char CACHE_DIR[] = "/tmp/drumlin/";
+const char CACHE_DIR[] = "/tmp/drumlin";
 
 const char CACHE_LOCATION_URI[] = "/tmp/drumlin/%d/%d/%d.png";
 
@@ -80,7 +81,7 @@ static int get_tile_from_server(const char*, int, int, int, TilePNGData*, AsyncO
 static int get_tile_from_cache(int, int, int, TilePNGData*);
 static int save_tile_to_cache(const char*, int, TilePNGData*);
 static void prepare_curl_easy_handle(CURL*);
-
+static int clear_cache();
 static CURLM* curl_multi;
 static char* user_agent;
 
@@ -255,7 +256,6 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
                     continue;
                 }
                 
-
             }
 
             int result = get_tile_from_server(tileservice->uri_fmt,z,x,y,
@@ -266,8 +266,8 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
             {
                 D_LOG_WARNING("Could not get tile: %d/%d/%d",z,x,y);
                 continue;
-            }            
-        }
+            }           
+		}
     }
     
     int running_handles;
@@ -290,6 +290,7 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
         }
         
 
+
     }while(running_handles > 0);
     
     for(y = 0; y <= height; y++)
@@ -310,7 +311,17 @@ d_tileservice_gettiles(DTileServiceLayer* tileservice, int z, int x1, int y1, in
             {
                 if(DRUMLIN_CACHE_TILES)
                 {
-                    save_tile_to_cache(png->cache_location_uri,png->uri_size,png);
+                    if(save_tile_to_cache(png->cache_location_uri,png->uri_size,png) == 0)
+					{
+						switch(errno)
+						{
+							case ENOSPC:
+								clear_cache();
+								break;
+							default:
+								break;
+						}
+					}
                 }
                 
                 curl_multi_remove_handle(curl_multi,operation->curl_op.handle);
@@ -413,7 +424,7 @@ get_tile_from_server(const char* tileservice_uri,int z, int x, int y, TilePNGDat
     operation->curl_op.handle = curl;
 
 
-    D_LOG_INFO("Getting tile from url %s",url);
+    //D_LOG_INFO("Getting tile from url %s",url);
 
     prepare_curl_easy_handle(curl);
 
@@ -426,6 +437,36 @@ get_tile_from_server(const char* tileservice_uri,int z, int x, int y, TilePNGDat
     free(url);
     return 1;
 }
+
+static int 
+rm_files(const char* path, const struct stat *sbuf, int type, struct FTW *ftwb)
+{
+	if(ftwb->level == 0)
+	{
+		return 0;
+	}
+	if(remove(path) < 0) 
+	{
+		D_LOG_ERROR("Could not remove %s: %s", path, strerror(errno));
+		return -1;
+	}
+	return 0;
+}
+
+
+static int 
+clear_cache(void) 
+{
+	D_LOG_INFO("Cleaing cache: %s", CACHE_DIR);
+	if(nftw(CACHE_DIR, rm_files, 64, FTW_CHDIR | FTW_DEPTH) < 0)
+	{
+		D_LOG_ERROR("Could not clear cache: %s", strerror(errno));
+		return 0;
+	}
+
+	return 1;
+}
+
 
 static int 
 get_tile_from_cache(int z, int x, int y, TilePNGData* png_data)
@@ -445,8 +486,7 @@ get_tile_from_cache(int z, int x, int y, TilePNGData* png_data)
     if(size < 0)
     {
         D_LOG_WARNING("Could not read cached tile %s: %s", uri,strerror(errno));
-        free(uri);
-        return 0;
+        goto get_tile_from_cache_error;
     }
     (void)lseek(fd,0,SEEK_SET);
     png_data->size = size;
@@ -455,13 +495,16 @@ get_tile_from_cache(int z, int x, int y, TilePNGData* png_data)
     if(size < 0)
     {
         D_LOG_WARNING("Could not read cached tile %s: %s", uri,strerror(errno));
-        free(uri);
-        return 0;
+        goto get_tile_from_cache_error;
     }
+	close(fd);
     free(uri);
+	
     return 1;
-
-
+get_tile_from_cache_error:
+	free(uri);
+	close(fd);
+	return 0;
 
 }
 
@@ -501,6 +544,11 @@ save_tile_to_cache(const char* uri, int uri_size, TilePNGData* image)
     if(written < 0)
     {
         D_LOG_WARNING("Could not write to cache file %s: %s",uri,strerror(errno));
+		close(fd);
+		if(unlink(uri) < 0)
+		{
+			D_LOG_ERROR("Could not unlink %s: %s", uri, strerror(errno));
+		}
         return 0;
     }
     (void)close(fd);

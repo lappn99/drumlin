@@ -5,7 +5,7 @@
 #include <drumlin/drumlin.h>
 #include <drumlin/logging.h>
 #include <drumlin/tileservice.h>
-#include <gdal.h>
+#include <gdal/gdal.h>
 
 static void set_envars(void);
 

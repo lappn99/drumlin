@@ -5,7 +5,7 @@
 #include "app.h"
 #include "container/list.h"
 
-int drumlin_init(void);
+extern int drumlin_init(void);
 const char* drumlin_tmpfolder(void);
 
 #include <drumlin/tileservice.h>

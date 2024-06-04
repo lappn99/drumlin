@@ -1,9 +1,9 @@
 #include <linux/limits.h>
 
-#include <gdal.h>
-#include <ogr_api.h>
-#include <ogr_core.h>
-#include <ogr_srs_api.h>
+#include <gdal/gdal.h>
+#include <gdal/ogr_api.h>
+#include <gdal/ogr_core.h>
+#include <gdal/ogr_srs_api.h>
 
 #include <drumlin/featurelayer.h>
 #include <drumlin/drumlin.h>

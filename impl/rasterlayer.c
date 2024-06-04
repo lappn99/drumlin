@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include <gdal.h>
+#include <gdal/gdal.h>
 #include <linux/limits.h>
 
 #include <drumlin/drumlin.h>
@@ -34,7 +34,7 @@ d_rasterlayer_render(struct DLayer* layer, DBBox viewbox, int zoom, void* userda
     
     CPLErr error = GDALDatasetRasterIO(dataset,GF_Read,0,0,graphic.width_px,graphic.height_px,
         graphic.raster,graphic.width_px,graphic.height_px,
-        GDT_Int8,graphic.bands,NULL,
+        GDT_Byte,graphic.bands,NULL,
         0,0,0);
     if(error != CE_None)
     {
@@ -100,11 +100,11 @@ void d_rasterlayer_load_fromimage(DRasterLayerHandle handle, const DImage* image
         GDALDriverH driver = GDALGetDriverByName("GTiff");
         
         const char* path = get_tmpfile("tiff");
-        handle->dataset = GDALCreate(driver,path,image->width,image->height,image->channels,GDT_Int8,NULL);
+        handle->dataset = GDALCreate(driver,path,image->width,image->height,image->channels,GDT_Byte,NULL);
 
         CPLErr error = GDALDatasetRasterIO(handle->dataset,GF_Write,0,0,
             image->width,image->height,image->data,image->width,
-            image->height,GDT_Int8,image->channels,NULL,0,0,0);
+            image->height,GDT_Byte,image->channels,NULL,0,0,0);
         
         
         if(error != CE_None)
